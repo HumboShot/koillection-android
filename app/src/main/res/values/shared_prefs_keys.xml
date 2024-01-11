@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="usercontext_username">usercontext_username</string>
+    <string name="usercontext_password">usercontext_password</string>
+    <string name="usercontext_domain">usercontext_domain</string>
+    <string name="usercontext_jwt">usercontext_jwt</string>
+</resources>
