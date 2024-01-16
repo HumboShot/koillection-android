@@ -3,12 +3,33 @@ package com.humboshot.koillection
 import android.content.SharedPreferences
 import androidx.security.crypto.EncryptedSharedPreferences
 import androidx.security.crypto.MasterKey
+import com.humboshot.koillection.models.UserCredentials
 
 class UserContext {
-    var jwt: String = getJWT()
+    var baseAddress: String = getSharedPreferences().getString(MainApplication.applicationContext.getString(R.string.usercontext_domain), "") ?: ""
+    var jwt: String = getSharedPreferences().getString(MainApplication.applicationContext.getString(R.string.usercontext_jwt), "") ?: ""
 
-    private fun getJWT(): String {
-        return getSharedPreferences().getString(MainApplication.applicationContext.getString(R.string.usercontext_jwt), "") ?: ""
+    fun getCredentials(): UserCredentials {
+        val sharedPreferences = getSharedPreferences()
+        val username = sharedPreferences.getString(MainApplication.applicationContext.getString(R.string.usercontext_username), "") ?: ""
+        val password = sharedPreferences.getString(MainApplication.applicationContext.getString(R.string.usercontext_password), "") ?: ""
+        val domain = sharedPreferences.getString(MainApplication.applicationContext.getString(R.string.usercontext_domain), "") ?: ""
+
+        return UserCredentials(username, password, domain)
+    }
+
+    fun updateJWT(jwt: String) {
+        with(getSharedPreferences().edit()) {
+            putString(MainApplication.applicationContext.getString(R.string.usercontext_jwt), jwt)
+            apply()
+        }
+    }
+
+    fun setDomain(domain: String) {
+        with(getSharedPreferences().edit()) {
+            putString(MainApplication.applicationContext.getString(R.string.usercontext_domain), domain)
+            apply()
+        }
     }
 
     fun setUser(username: String, password: String, domain: String, jwt: String) {

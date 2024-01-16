@@ -21,6 +21,10 @@ class AppState(
         return userContext.jwt.isNotEmpty()
     }
 
+    fun singedIn() {
+        isAuthenticated = true
+    }
+
     fun signOut() {
         userContext.removeUserFromStorage()
         isAuthenticated = false

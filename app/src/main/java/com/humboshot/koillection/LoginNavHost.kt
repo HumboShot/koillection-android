@@ -19,7 +19,7 @@ fun LoginNavHost(
         startDestination = Login.route
     ) {
         composable(route = Login.route) {
-            LoginScreen()
+            LoginScreen(appState)
         }
     }
 }

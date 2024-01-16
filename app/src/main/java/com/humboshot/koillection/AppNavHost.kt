@@ -6,7 +6,9 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.humboshot.koillection.destinations.Login
+import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.ui.login.LoginScreen
+import com.humboshot.koillection.ui.main_collection.MainCollectionScreen
 
 @Composable
 fun AppNavHost(
@@ -16,11 +18,11 @@ fun AppNavHost(
 ) {
     NavHost(
         navController = navHostController,
-        startDestination = Login.route,
+        startDestination = MainCollection.route,
         modifier
     ) {
-        composable(route = Login.route) {
-            LoginScreen()
+        composable(route = MainCollection.route) {
+            MainCollectionScreen()
         }
     }
 }
