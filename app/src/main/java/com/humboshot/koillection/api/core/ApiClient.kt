@@ -26,7 +26,7 @@ object ApiClient {
                 .newBuilder()
 
             if (jwt.isNotEmpty()) {
-                request.addHeader("Authorization", "JWT $jwt")
+                request.addHeader("Authorization", "Bearer $jwt")
             }
 
             return@Interceptor chain.proceed(request.build())
@@ -36,7 +36,7 @@ object ApiClient {
             .Builder()
             .addInterceptor(httpLoggingInterceptor)
             .addInterceptor(headersInterceptor)
-            .authenticator(TokenAuthenticator())
+            //.authenticator(TokenAuthenticator()) TODO: Figure out how this should be used
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .build()

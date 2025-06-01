@@ -1,5 +1,7 @@
 package com.humboshot.koillection.ui.login
 
+import android.util.Log
+import android.util.Patterns
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.humboshot.koillection.UserContext
@@ -43,13 +45,19 @@ class LoginViewModel : ViewModel() {
         viewModelScope.launch {
             loggingIn.value = true
 
+            val validatedDomain = validateWebsite(domain)
             // Temporary set the domain in the UserContext
-            UserContext().setDomain(domain)
+            UserContext().setDomain(validatedDomain)
 
             val result = ApiClient.getInstance().create(LoginService::class.java).login(AuthenticationRequest(username, password))
             if (result.isSuccessful) {
                 result.body()?.let {
-                    UserContext.instance.setUser(username, password, domain, it.token)
+                    if (it.token.isEmpty()) {
+                        //TODO: Handle empty string
+
+                    } else {
+                        UserContext.instance.setUser(username, password, validatedDomain, it.token)
+                    }
                 }
             } else {
                 loggingIn.value = false
@@ -57,6 +65,26 @@ class LoginViewModel : ViewModel() {
 
             didLogin(result.isSuccessful)
         }
+    }
+
+    private fun validateWebsite(website: String): String {
+        var validWebsite = website
+        if (!Patterns.WEB_URL.matcher(website).matches()) {
+            // If the URL is not valid, set an error message.
+            // You might want to handle this error more explicitly,
+            // perhaps by returning a null or throwing an exception,
+            // depending on your desired error handling strategy.
+            errorMessage.value = "Invalid URL format"
+        } else {
+            // If the URL is valid, ensure it starts with https://
+            if (!website.startsWith("https://")) {
+                Log.d(this.toString(), "Website must start with https://")
+                validWebsite = "https://$website"
+            }
+            // Clear any previous error message if the URL is valid
+            errorMessage.value = ""
+        }
+        return validWebsite
     }
 }
 
