@@ -8,7 +8,9 @@ import com.humboshot.koillection.models.UserCredentials
 
 class UserContext {
     var baseAddress: String = getSharedPreferences().getString(MainApplication.applicationContext.getString(R.string.usercontext_domain), "") ?: ""
-    var jwt: String = getSharedPreferences().getString(MainApplication.applicationContext.getString(R.string.usercontext_jwt), "") ?: ""
+    var jwt: String
+        get() = getJWT()
+        set(jwt) = updateJWT(jwt)
 
     fun getCredentials(): UserCredentials {
         val sharedPreferences = getSharedPreferences()
@@ -25,6 +27,10 @@ class UserContext {
         }
     }
 
+    fun getJWT(): String {
+        return getSharedPreferences().getString(MainApplication.applicationContext.getString(R.string.usercontext_jwt), "") ?: ""
+    }
+
     fun setDomain(domain: String) {
         getSharedPreferences().edit {
             putString(MainApplication.applicationContext.getString(R.string.usercontext_domain), domain)
@@ -38,7 +44,6 @@ class UserContext {
             putString(MainApplication.applicationContext.getString(R.string.usercontext_domain), domain)
             putString(MainApplication.applicationContext.getString(R.string.usercontext_jwt), jwt)
         }
-
     }
 
     fun removeUserFromStorage() {
