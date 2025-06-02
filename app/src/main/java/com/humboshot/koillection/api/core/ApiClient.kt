@@ -13,9 +13,6 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
-    private var bassAddress = UserContext().baseAddress
-    private var jwt: String = UserContext().jwt
-
     fun getInstance(): Retrofit {
         val httpLoggingInterceptor = HttpLoggingInterceptor()
         httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
@@ -25,8 +22,8 @@ object ApiClient {
                 .request()
                 .newBuilder()
 
-            if (jwt.isNotEmpty()) {
-                request.addHeader("Authorization", "Bearer $jwt")
+            if (UserContext().jwt.isNotEmpty()) {
+                request.addHeader("Authorization", "Bearer ${UserContext().jwt}")
             }
 
             return@Interceptor chain.proceed(request.build())
@@ -36,7 +33,7 @@ object ApiClient {
             .Builder()
             .addInterceptor(httpLoggingInterceptor)
             .addInterceptor(headersInterceptor)
-            //.authenticator(TokenAuthenticator()) TODO: Figure out how this should be used
+            .authenticator(TokenAuthenticator())
             .connectTimeout(60, TimeUnit.SECONDS)
             .readTimeout(60, TimeUnit.SECONDS)
             .build()
@@ -50,6 +47,7 @@ object ApiClient {
             .baseUrl(UserContext().getCredentials().domain)
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
+            .addCallAdapterFactory(ResultCallAdapterFactory())
             .build()
     }
 }
