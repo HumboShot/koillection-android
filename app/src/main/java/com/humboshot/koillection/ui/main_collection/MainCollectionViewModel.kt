@@ -43,14 +43,15 @@ class MainCollectionViewModel : ViewModel() {
         viewModelScope.launch {
             isLoading.value = true
 
-            val result = ApiClient.getInstance().create(CollectionService::class.java).getCollections()
-            if (result.isSuccessful) {
-                result.body()?.let {
+            val apiClient = ApiClient.getInstance().create(CollectionService::class.java)
+            apiClient.getCollections()
+                .onSuccess {
                     members.value = it.member
+                    isLoading.value = false
                 }
-                isLoading.value = false
-            }
-
+                .onFailure {
+                    isLoading.value = false
+                }
         }
     }
 }

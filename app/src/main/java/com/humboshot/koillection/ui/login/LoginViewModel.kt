@@ -13,7 +13,6 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
-import retrofit2.http.Url
 
 class LoginViewModel : ViewModel() {
     private val loggingIn: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -49,21 +48,16 @@ class LoginViewModel : ViewModel() {
             // Temporary set the domain in the UserContext
             UserContext().setDomain(validatedDomain)
 
-            val result = ApiClient.getInstance().create(LoginService::class.java).login(AuthenticationRequest(username, password))
-            if (result.isSuccessful) {
-                result.body()?.let {
-                    if (it.token.isEmpty()) {
-                        //TODO: Handle empty string
-
-                    } else {
-                        UserContext.instance.setUser(username, password, validatedDomain, it.token)
-                    }
+            val apiClient = ApiClient.getInstance().create(LoginService::class.java)
+            apiClient.login(AuthenticationRequest(username, password))
+                .onSuccess {
+                    UserContext.instance.setUser(username, password, validatedDomain, it.token)
+                    didLogin(true)
                 }
-            } else {
-                loggingIn.value = false
-            }
-
-            didLogin(result.isSuccessful)
+                .onFailure {
+                    loggingIn.value = false
+                    didLogin(false)
+                }
         }
     }
 
