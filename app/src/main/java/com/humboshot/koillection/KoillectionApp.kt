@@ -1,6 +1,7 @@
 package com.humboshot.koillection
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
@@ -116,7 +117,7 @@ fun KoillectionApp(
                 }
             ) { innerPadding ->
                 CompositionLocalProvider(LocalTopBarActions provides topBarActions) {
-                    AppNavHost(navHostController, appState, Modifier.padding(innerPadding))
+                    AppNavHost(navHostController, appState, Modifier.padding(innerPadding).consumeWindowInsets(innerPadding))
                 }
             }
         }

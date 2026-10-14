@@ -32,8 +32,10 @@ fun NavBackStackEntry.pageTitle(): String =
     else arguments?.getString(TITLE_ARG).orEmpty()
 
 /** The breadcrumb of this page: the titles above it, then its own title. */
-fun NavBackStackEntry.breadcrumb(): List<String> =
-    arguments?.getString(TRAIL_ARG).orEmpty().split(TRAIL_SEPARATOR).filter { it.isNotEmpty() } + pageTitle()
+fun NavBackStackEntry.breadcrumb(): List<String> {
+    val trail = arguments?.getString(TRAIL_ARG).orEmpty()
+    return (if (trail.isEmpty()) emptyList() else trail.split(TRAIL_SEPARATOR)) + pageTitle()
+}
 
 /** Adds the breadcrumb of the page we come from to a route, so the new page can show the full path. */
 fun withTrail(route: String, from: NavBackStackEntry?): String {

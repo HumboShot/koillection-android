@@ -1,7 +1,9 @@
 package com.humboshot.koillection.ui.navigation
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -20,6 +22,7 @@ import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationDrawerItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
@@ -79,27 +82,27 @@ fun AppDrawer(
         }
 
         HorizontalDivider(color = colors.sidebarDivider, modifier = Modifier.padding(horizontal = 16.dp))
-        NavigationDrawerItem(
-            label = {
-                Column {
-                    Text(username.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis)
-                    serverHost?.let {
-                        Text(
-                            text = it,
-                            style = MaterialTheme.typography.bodySmall,
-                            color = colors.onSidebar.copy(alpha = 0.75f),
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
-                        )
-                    }
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Icon(Icons.Default.AccountCircle, contentDescription = null)
+            Column {
+                Text(username.orEmpty(), maxLines = 1, overflow = TextOverflow.Ellipsis)
+                serverHost?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = colors.onSidebar.copy(alpha = 0.75f),
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
                 }
-            },
-            icon = { Icon(Icons.Default.AccountCircle, contentDescription = null) },
-            selected = false,
-            onClick = {},
-            shape = RectangleShape,
-            colors = itemColors,
-        )
+            }
+        }
         NavigationDrawerItem(
             label = { Text("Log out") },
             icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null) },
