@@ -1,64 +1,46 @@
-package com.humboshot.koillection.ui.main_collection
+package com.humboshot.koillection.ui.collection
 
-import androidx.compose.foundation.Image
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
-import coil.compose.rememberAsyncImagePainter
-import coil.request.ImageRequest
-import com.humboshot.koillection.UserContext
-import com.humboshot.koillection.extension.buildUrl
+import com.humboshot.koillection.data.collection.KCollection
+import com.humboshot.koillection.ui.common.EmptyState
+import com.humboshot.koillection.ui.common.ErrorState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun MainCollectionScreen(viewModel: MainCollectionViewModel = viewModel()) {
+fun CollectionScreen(
+    onCollectionClick: (KCollection) -> Unit,
+    viewModel: CollectionViewModel = viewModel()
+) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     PullToRefreshBox(
         isRefreshing = state.isLoading,
-        onRefresh = { viewModel.getCollections() }
+        onRefresh = { viewModel.getCollections() },
+        modifier = Modifier.fillMaxSize()
     ) {
-        LazyColumn {
-            if (state.members.isEmpty()) {
+        LazyColumn(modifier = Modifier.fillMaxSize()) {
+            state.error?.let { error ->
                 item {
-                    Text("No collections found")
+                    ErrorState(error, onRetry = { viewModel.getCollections() })
                 }
             }
 
-            items(state.members.size) { index ->
-                val item = state.members[index]
-                Row(
-                    modifier = Modifier.padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Image(
-                        painter = rememberAsyncImagePainter(
-                            ImageRequest.Builder(LocalContext.current)
-                                .addHeader("Authorization", "Bearer ${UserContext().jwt}")
-                                .data(item.image?.buildUrl())
-                                .crossfade(true)
-                                .build()
-                        ),
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp)
-
-                    )
-
-                    Text(item.title)
+            if (state.collections.isEmpty() && !state.isLoading && state.error == null) {
+                item {
+                    EmptyState("No collections found")
                 }
+            }
+
+            items(state.collections, key = { it.id }) { collection ->
+                CollectionRow(collection, onClick = { onCollectionClick(collection) })
             }
         }
     }

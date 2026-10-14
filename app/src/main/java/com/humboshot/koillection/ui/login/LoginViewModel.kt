@@ -1,20 +1,20 @@
 package com.humboshot.koillection.ui.login
 
-import android.util.Log
-import android.util.Patterns
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.humboshot.koillection.UserContext
 import com.humboshot.koillection.api.core.ApiClient
 import com.humboshot.koillection.api.services.LoginService
 import com.humboshot.koillection.data.login.AuthenticationRequest
+import com.humboshot.koillection.extension.normalizeServerUrl
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
 
-class LoginViewModel : ViewModel() {
+class LoginViewModel(val passwordFieldState: TextFieldState = TextFieldState()) : ViewModel() {
     private val loggingIn: MutableStateFlow<Boolean> = MutableStateFlow(false)
     private val errorMessage: MutableStateFlow<String> = MutableStateFlow("")
 
@@ -40,45 +40,36 @@ class LoginViewModel : ViewModel() {
         }
     }
 
-    fun login(username: String, password: String, domain: String, didLogin: (Boolean) -> Unit) {
+    fun login(username: String, domain: String, didLogin: (Boolean) -> Unit) {
+        val validatedDomain = domain.normalizeServerUrl()
+        if (validatedDomain == null) {
+            errorMessage.value = "Invalid server address"
+            didLogin(false)
+            return
+        }
+
         viewModelScope.launch {
             loggingIn.value = true
+            errorMessage.value = ""
 
-            val validatedDomain = validateWebsite(domain)
             // Temporary set the domain in the UserContext
             UserContext().setDomain(validatedDomain)
+
+            val password: String = passwordFieldState.text.toString()
 
             val apiClient = ApiClient.getInstance().create(LoginService::class.java)
             apiClient.login(AuthenticationRequest(username, password))
                 .onSuccess {
                     UserContext.instance.setUser(username, password, validatedDomain, it.token)
+                    loggingIn.value = false
                     didLogin(true)
                 }
                 .onFailure {
+                    errorMessage.value = it.message ?: "Login failed"
                     loggingIn.value = false
                     didLogin(false)
                 }
         }
-    }
-
-    private fun validateWebsite(website: String): String {
-        var validWebsite = website
-        if (!Patterns.WEB_URL.matcher(website).matches()) {
-            // If the URL is not valid, set an error message.
-            // You might want to handle this error more explicitly,
-            // perhaps by returning a null or throwing an exception,
-            // depending on your desired error handling strategy.
-            errorMessage.value = "Invalid URL format"
-        } else {
-            // If the URL is valid, ensure it starts with https://
-            if (!website.startsWith("https://")) {
-                Log.d(this.toString(), "Website must start with https://")
-                validWebsite = "https://$website"
-            }
-            // Clear any previous error message if the URL is valid
-            errorMessage.value = ""
-        }
-        return validWebsite
     }
 }
 

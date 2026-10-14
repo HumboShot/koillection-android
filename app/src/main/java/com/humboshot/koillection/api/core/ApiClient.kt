@@ -13,7 +13,21 @@ import java.util.Date
 import java.util.concurrent.TimeUnit
 
 object ApiClient {
+    private var retrofit: Retrofit? = null
+    private var retrofitDomain: String? = null
+
+    @Synchronized
     fun getInstance(): Retrofit {
+        val domain = UserContext.instance.getCredentials().domain
+        retrofit?.takeIf { retrofitDomain == domain }?.let { return it }
+
+        return build(domain).also {
+            retrofit = it
+            retrofitDomain = domain
+        }
+    }
+
+    private fun build(domain: String): Retrofit {
         val httpLoggingInterceptor = HttpLoggingInterceptor()
         httpLoggingInterceptor.level = HttpLoggingInterceptor.Level.BODY
 
@@ -21,9 +35,11 @@ object ApiClient {
             val request = chain
                 .request()
                 .newBuilder()
+                .header("Accept", "application/ld+json")
 
-            if (UserContext().jwt.isNotEmpty()) {
-                request.addHeader("Authorization", "Bearer ${UserContext().jwt}")
+            val jwt = UserContext.instance.jwt
+            if (jwt.isNotEmpty()) {
+                request.header("Authorization", "Bearer $jwt")
             }
 
             return@Interceptor chain.proceed(request.build())
@@ -44,7 +60,7 @@ object ApiClient {
             .build()
 
         return Retrofit.Builder()
-            .baseUrl(UserContext().getCredentials().domain)
+            .baseUrl(domain)
             .client(okHttpClient)
             .addConverterFactory(MoshiConverterFactory.create(moshi))
             .addCallAdapterFactory(ResultCallAdapterFactory())

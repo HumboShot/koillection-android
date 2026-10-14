@@ -1,56 +1,33 @@
-package com.humboshot.koillection.ui.main_collection
+package com.humboshot.koillection.ui.collection
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.humboshot.koillection.api.core.ApiClient
-import com.humboshot.koillection.api.services.CollectionService
-import com.humboshot.koillection.data.collection.Member
+import com.humboshot.koillection.data.collection.KCollection
+import com.humboshot.koillection.data.repository.CollectionRepository
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-class MainCollectionViewModel : ViewModel() {
-    private val isLoading: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    private val members: MutableStateFlow<List<Member>> = MutableStateFlow(emptyList())
-
+class CollectionViewModel : ViewModel() {
     private val _state = MutableStateFlow(MainCollectionViewState())
-    val state: StateFlow<MainCollectionViewState>
-        get() = _state
+    val state: StateFlow<MainCollectionViewState> = _state.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            combine(
-                isLoading,
-                members
-            ) { isLoading, collections ->
-                MainCollectionViewState(
-                    isLoading,
-                    collections
-                )
-            }.catch { throwable ->
-                throw throwable
-            }.collect {
-                _state.value = it
-            }
-        }
-
         getCollections()
     }
 
     fun getCollections() {
         viewModelScope.launch {
-            isLoading.value = true
+            _state.update { it.copy(isLoading = true, error = null) }
 
-            val apiClient = ApiClient.getInstance().create(CollectionService::class.java)
-            apiClient.getCollections()
-                .onSuccess {
-                    members.value = it.member
-                    isLoading.value = false
+            CollectionRepository.getRootCollections()
+                .onSuccess { collections ->
+                    _state.update { it.copy(isLoading = false, collections = collections) }
                 }
-                .onFailure {
-                    isLoading.value = false
+                .onFailure { throwable ->
+                    _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to load collections") }
                 }
         }
     }
@@ -58,5 +35,6 @@ class MainCollectionViewModel : ViewModel() {
 
 data class MainCollectionViewState(
     val isLoading: Boolean = false,
-    val members: List<Member> = emptyList()
+    val collections: List<KCollection> = emptyList(),
+    val error: String? = null,
 )

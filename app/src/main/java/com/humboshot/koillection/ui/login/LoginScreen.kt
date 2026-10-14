@@ -7,6 +7,9 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.TextFieldState
+import androidx.compose.material.SecureTextField
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -21,6 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.KeyboardCapitalization
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -72,14 +77,12 @@ fun LoginScreen(
                 onValueChange = { username = it }
             )
 
-            TextField(
-                value = password,
+            SecureTextField(
+                state = viewModel.passwordFieldState,
                 modifier = Modifier.fillMaxWidth(),
-                visualTransformation = PasswordVisualTransformation(),
                 label = {
                     Text(text = "Password")
                 },
-                onValueChange = { password = it }
             )
 
             TextField(
@@ -89,12 +92,27 @@ fun LoginScreen(
                     Text(text = "Domain")
                 },
                 onValueChange = { domain = it },
-                isError = !domain.contains("https://")
+                singleLine = true,
+                placeholder = { Text("collection.example.com") },
+                keyboardOptions = KeyboardOptions(
+                    capitalization = KeyboardCapitalization.None,
+                    autoCorrectEnabled = false,
+                    keyboardType = KeyboardType.Uri
+                ),
+                isError = uiState.errorMessage.isNotEmpty()
             )
+
+            if (uiState.errorMessage.isNotEmpty()) {
+                Text(
+                    text = uiState.errorMessage,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
 
             Button(
                 onClick = {
-                    viewModel.login(username, password, domain) { success ->
+                    viewModel.login(username, domain) { success ->
                         if (success) {
                             appState.singedIn()
                         }
