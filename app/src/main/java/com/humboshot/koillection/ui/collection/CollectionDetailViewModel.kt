@@ -64,6 +64,17 @@ class CollectionDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel(
         }
     }
 
+    fun delete() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            CollectionRepository.deleteCollection(collectionId)
+                .onSuccess { _state.update { it.copy(isLoading = false, isDeleted = true) } }
+                .onFailure { throwable ->
+                    _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to delete collection") }
+                }
+        }
+    }
+
     fun loadMoreItems() {
         val current = _state.value
         if (!current.hasMoreItems || current.isLoading || itemsJob?.isActive == true) return
@@ -101,4 +112,5 @@ data class CollectionDetailViewState(
     val totalItems: Int? = null,
     val hasMoreItems: Boolean = false,
     val error: String? = null,
+    val isDeleted: Boolean = false,
 )

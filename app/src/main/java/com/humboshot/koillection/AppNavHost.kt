@@ -60,6 +60,7 @@ fun AppNavHost(
                 onAddItem = { collectionId -> navHostController.navigate(ItemForm.createRoute(collectionId)) },
                 onAddSubCollection = { parentId -> navHostController.navigate(CollectionForm.createRoute(parentId)) },
                 onEdit = { collectionId -> navHostController.navigate(CollectionForm.editRoute(collectionId)) },
+                onDeleted = { navHostController.popWithRefresh() },
                 viewModel = viewModel
             )
         }

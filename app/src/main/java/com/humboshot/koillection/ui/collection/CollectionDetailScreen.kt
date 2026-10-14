@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -28,6 +29,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -59,10 +61,16 @@ fun CollectionDetailScreen(
     onAddItem: (collectionId: String) -> Unit,
     onAddSubCollection: (parentId: String) -> Unit,
     onEdit: (collectionId: String) -> Unit,
+    onDeleted: () -> Unit,
     viewModel: CollectionDetailViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var menuOpen by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isDeleted) {
+        if (state.isDeleted) onDeleted()
+    }
 
     state.collection?.let { collection ->
         TopBarActions {
@@ -82,6 +90,13 @@ fun CollectionDetailScreen(
                     onClick = {
                         menuOpen = false
                         onEdit(collection.id)
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Delete collection") },
+                    onClick = {
+                        menuOpen = false
+                        confirmDelete = true
                     }
                 )
             }
@@ -173,6 +188,28 @@ fun CollectionDetailScreen(
                 Icon(Icons.Default.Add, contentDescription = "Add item")
             }
         }
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Delete collection?") },
+            text = {
+                Text(
+                    "This deletes \"${state.collection?.title}\" with all its sub-collections and items. " +
+                        "You cannot undo this."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    viewModel.delete()
+                }) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { confirmDelete = false }) { Text("Cancel") }
+            }
+        )
     }
 }
 
