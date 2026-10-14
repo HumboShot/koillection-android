@@ -16,8 +16,12 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -45,6 +49,7 @@ import com.humboshot.koillection.ui.item.ItemCard
 fun CollectionDetailScreen(
     onCollectionClick: (KCollection) -> Unit,
     onItemClick: (Item) -> Unit,
+    onAddItem: (collectionId: String) -> Unit,
     viewModel: CollectionDetailViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -68,7 +73,7 @@ fun CollectionDetailScreen(
         LazyVerticalGrid(
             columns = GridCells.Adaptive(minSize = 140.dp),
             state = gridState,
-            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 16.dp),
+            contentPadding = PaddingValues(start = 12.dp, end = 12.dp, bottom = 88.dp),
             horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp),
             modifier = Modifier.fillMaxSize()
@@ -121,6 +126,17 @@ fun CollectionDetailScreen(
                 state.children.isEmpty() && state.items.isEmpty()
             ) {
                 fullWidth { EmptyState("This collection is empty") }
+            }
+        }
+
+        state.collection?.let { collection ->
+            FloatingActionButton(
+                onClick = { onAddItem(collection.id) },
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "Add item")
             }
         }
     }

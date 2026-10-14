@@ -3,6 +3,7 @@ package com.humboshot.koillection.destinations
 import android.net.Uri
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Menu
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -52,4 +53,19 @@ object ItemDetail : AppDestination {
     )
 
     fun createRoute(id: String, title: String): String = "item/$id?$TITLE_ARG=${Uri.encode(title)}"
+}
+
+object ItemForm : AppDestination {
+    const val COLLECTION_ID_ARG = "collectionId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String = "item_form?$COLLECTION_ID_ARG={$COLLECTION_ID_ARG}&$TITLE_ARG={$TITLE_ARG}"
+    override val title: String = "New item"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(COLLECTION_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+    )
+
+    fun createRoute(collectionId: String): String = "item_form?$COLLECTION_ID_ARG=$collectionId"
 }
