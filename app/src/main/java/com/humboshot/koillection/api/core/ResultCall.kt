@@ -8,12 +8,15 @@ import retrofit2.Callback
 import retrofit2.HttpException
 import retrofit2.Response
 
-class ResultCall<T>(val delegate: Call<T>) : Call<Result<T>> {
+class ResultCall<T>(val delegate: Call<T>, private val isUnit: Boolean = false) : Call<Result<T>> {
+    @Suppress("UNCHECKED_CAST")
+    private fun bodyOf(body: T?): T? = body ?: if (isUnit) Unit as T else null
+
     override fun enqueue(callback: Callback<Result<T>>) {
         delegate.enqueue(
             object : Callback<T> {
                 override fun onResponse(call: Call<T?>, response: Response<T?>) {
-                    val body = response.body()
+                    val body = bodyOf(response.body())
                     if (response.isSuccessful && body != null) {
                         callback.onResponse(
                             this@ResultCall,
@@ -55,7 +58,7 @@ class ResultCall<T>(val delegate: Call<T>) : Call<Result<T>> {
 
     override fun execute(): Response<Result<T>?> {
         val response = delegate.execute()
-        val body = response.body()
+        val body = bodyOf(response.body())
         return if (response.isSuccessful && body != null) {
             Response.success(Result.success(body))
         } else {
@@ -76,7 +79,7 @@ class ResultCall<T>(val delegate: Call<T>) : Call<Result<T>> {
     }
 
     override fun clone(): Call<Result<T>> {
-        return ResultCall(delegate.clone())
+        return ResultCall(delegate.clone(), isUnit)
     }
 
     override fun request(): Request {
