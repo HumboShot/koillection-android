@@ -4,6 +4,7 @@ import com.humboshot.koillection.api.core.ApiClient
 import com.humboshot.koillection.api.services.ItemService
 import com.humboshot.koillection.data.datum.Datum
 import com.humboshot.koillection.data.item.Item
+import com.humboshot.koillection.data.item.ItemWrite
 import com.humboshot.koillection.data.tag.Tag
 
 object ItemRepository {
@@ -21,4 +22,10 @@ object ItemRepository {
 
     suspend fun getRelatedItems(id: String): Result<List<Item>> =
         getAllPages { page -> service.getRelatedItems(id, page) }
+
+    suspend fun createItem(item: ItemWrite): Result<Item> = service.createItem(item)
+
+    suspend fun updateItem(id: String, item: ItemWrite): Result<Item> = service.updateItem(id, item)
+
+    suspend fun deleteItem(id: String): Result<Unit> = service.deleteItem(id)
 }

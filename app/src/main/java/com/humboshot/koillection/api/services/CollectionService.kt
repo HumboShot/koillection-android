@@ -1,10 +1,16 @@
 package com.humboshot.koillection.api.services
 
+import com.humboshot.koillection.data.collection.CollectionWrite
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.datum.Datum
 import com.humboshot.koillection.data.hydra.HydraCollection
 import com.humboshot.koillection.data.item.Item
+import retrofit2.http.Body
+import retrofit2.http.DELETE
 import retrofit2.http.GET
+import retrofit2.http.Headers
+import retrofit2.http.PATCH
+import retrofit2.http.POST
 import retrofit2.http.Path
 import retrofit2.http.Query
 
@@ -23,4 +29,14 @@ interface CollectionService {
 
     @GET("/api/collections/{id}/data")
     suspend fun getData(@Path("id") id: String, @Query("page") page: Int = 1): Result<HydraCollection<Datum>>
+
+    @POST("/api/collections")
+    suspend fun createCollection(@Body collection: CollectionWrite): Result<KCollection>
+
+    @Headers("Content-Type: application/merge-patch+json")
+    @PATCH("/api/collections/{id}")
+    suspend fun updateCollection(@Path("id") id: String, @Body collection: CollectionWrite): Result<KCollection>
+
+    @DELETE("/api/collections/{id}")
+    suspend fun deleteCollection(@Path("id") id: String): Result<Unit>
 }

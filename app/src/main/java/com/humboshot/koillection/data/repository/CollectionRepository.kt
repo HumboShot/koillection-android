@@ -2,6 +2,7 @@ package com.humboshot.koillection.data.repository
 
 import com.humboshot.koillection.api.core.ApiClient
 import com.humboshot.koillection.api.services.CollectionService
+import com.humboshot.koillection.data.collection.CollectionWrite
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.datum.Datum
 import com.humboshot.koillection.data.item.Item
@@ -26,4 +27,12 @@ object CollectionRepository {
 
     suspend fun getItems(id: String, page: Int): Result<Page<Item>> =
         service.getItems(id, page).map { it.toPage() }
+
+    suspend fun createCollection(collection: CollectionWrite): Result<KCollection> =
+        service.createCollection(collection)
+
+    suspend fun updateCollection(id: String, collection: CollectionWrite): Result<KCollection> =
+        service.updateCollection(id, collection)
+
+    suspend fun deleteCollection(id: String): Result<Unit> = service.deleteCollection(id)
 }
