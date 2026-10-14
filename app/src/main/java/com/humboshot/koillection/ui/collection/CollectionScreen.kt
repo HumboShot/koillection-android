@@ -11,6 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
@@ -19,6 +20,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberAsyncImagePainter
 import coil.request.ImageRequest
 import com.humboshot.koillection.UserContext
+import com.humboshot.koillection.extension.buildUrl
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,29 +41,25 @@ fun MainCollectionScreen(viewModel: MainCollectionViewModel = viewModel()) {
                 val item = state.members[index]
                 Row(
                     modifier = Modifier.padding(16.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Image(
                         painter = rememberAsyncImagePainter(
                             ImageRequest.Builder(LocalContext.current)
                                 .addHeader("Authorization", "Bearer ${UserContext().jwt}")
-                                .data(buildUrl(item.image))
+                                .data(item.image?.buildUrl())
                                 .crossfade(true)
                                 .build()
                         ),
                         contentDescription = null,
                         modifier = Modifier.size(64.dp)
+
                     )
 
-                    Text("Collection: ${item.title}")
+                    Text(item.title)
                 }
             }
         }
     }
-}
-
-private fun buildUrl(imagePath: String?): String {
-    if (imagePath == null || imagePath.isEmpty()) return ""
-    val url = UserContext().baseAddress + "/" + imagePath
-    return url
 }
