@@ -75,6 +75,7 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     fun save() {
+        if (_state.value.isSaving) return
         val fields = _state.value.fields
         fields.validate()?.let { error ->
             _state.update { it.copy(error = error) }

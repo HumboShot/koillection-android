@@ -65,6 +65,7 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun saveDatum() {
         val editor = _state.value.datumEditor ?: return
+        if (editor.isSaving) return
         editor.fields.validate()?.let { error ->
             _state.update { it.copy(datumEditor = editor.copy(error = error)) }
             return
@@ -88,7 +89,9 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     fun deleteDatum() {
-        val target = _state.value.datumEditor?.target ?: return
+        val editor = _state.value.datumEditor ?: return
+        if (editor.isSaving) return
+        val target = editor.target ?: return
         runDatumChange { DatumRepository.deleteDatum(target.id) }
     }
 
