@@ -55,9 +55,11 @@ Steps:
 
 Related upstream reports: [#1600](https://github.com/benjaminjonard/koillection/issues/1600), [#1400](https://github.com/benjaminjonard/koillection/issues/1400), [#1410](https://github.com/benjaminjonard/koillection/issues/1410).
 
-### Android Studio: "Gradle 8.13 is incompatible with the Gradle JVM version 25"
+### Build requirements
 
-Recent Android Studio versions bundle Java 25, but Gradle 8.13 runs only on Java 8–23. Pick **Use JVM 21** in the dialog, or set **Settings → Build, Execution, Deployment → Build Tools → Gradle → Gradle JDK** to a Java 21 install. From the command line, run `JAVA_HOME=$(/usr/libexec/java_home -v 21) ./gradlew assembleDebug` (macOS).
+The project uses Android Gradle plugin 9.4, Gradle 9.6 and Kotlin 2.4. Gradle needs JDK 17 or newer. The JDK that Android Studio includes (JDK 25) works.
+
+From the command line, point `JAVA_HOME` at a JDK 17 or newer, then run `./gradlew assembleDebug`.
 
 ### Server address
 
