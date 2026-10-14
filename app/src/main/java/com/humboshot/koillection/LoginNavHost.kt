@@ -11,7 +11,6 @@ import com.humboshot.koillection.ui.login.LoginScreen
 @Composable
 fun LoginNavHost(
     navHostController: NavHostController,
-    appState: AppState,
     modifier: Modifier = Modifier
 ) {
     NavHost(
@@ -19,7 +18,7 @@ fun LoginNavHost(
         startDestination = Login.route
     ) {
         composable(route = Login.route) {
-            LoginScreen(appState)
+            LoginScreen()
         }
     }
 }

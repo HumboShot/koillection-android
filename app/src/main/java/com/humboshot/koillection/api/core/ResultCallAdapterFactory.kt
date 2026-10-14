@@ -14,11 +14,13 @@ class ResultCallAdapterFactory : CallAdapter.Factory() {
 
         val upperBound = getParameterUpperBound(0, returnType)
         return if (upperBound is ParameterizedType && upperBound.rawType == Result::class.java) {
+            val responseType = getParameterUpperBound(0, upperBound)
             object : CallAdapter<Any, Call<Result<*>>> {
-                override fun responseType(): Type = getParameterUpperBound(0, upperBound)
+                override fun responseType(): Type = responseType
 
                 @Suppress("UNCHECKED_CAST")
-                override fun adapt(call: Call<Any>): Call<Result<*>> = ResultCall(call) as Call<Result<*>>
+                override fun adapt(call: Call<Any>): Call<Result<*>> =
+                    ResultCall(call, isUnit = responseType == Unit::class.java) as Call<Result<*>>
             }
         } else {
             null

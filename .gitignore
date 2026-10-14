@@ -31,5 +31,7 @@ google-services.json
 
 # Android Profiling
 *.hprof
-gradle
 app/release
+
+# macOS
+.DS_Store

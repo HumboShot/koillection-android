@@ -8,18 +8,27 @@ import retrofit2.Callback
 import retrofit2.HttpException
 import retrofit2.Response
 
-class ResultCall<T>(val delegate: Call<T>) : Call<Result<T>> {
+class ResultCall<T>(val delegate: Call<T>, private val isUnit: Boolean = false) : Call<Result<T>> {
+    @Suppress("UNCHECKED_CAST")
+    private fun bodyOf(body: T?): T? = body ?: if (isUnit) Unit as T else null
+
     override fun enqueue(callback: Callback<Result<T>>) {
         delegate.enqueue(
             object : Callback<T> {
                 override fun onResponse(call: Call<T?>, response: Response<T?>) {
-                    if (response.isSuccessful) {
+                    val body = bodyOf(response.body())
+                    if (response.isSuccessful && body != null) {
                         callback.onResponse(
                             this@ResultCall,
                             Response.success(
                                 response.code(),
-                                Result.success(response.body()!!)
+                                Result.success(body)
                             )
+                        )
+                    } else if (response.isSuccessful) {
+                        callback.onResponse(
+                            this@ResultCall,
+                            Response.success(Result.failure(Exception("Error: ${response.code()} \n Message: Empty response body")))
                         )
                     } else {
                         callback.onResponse(
@@ -48,7 +57,13 @@ class ResultCall<T>(val delegate: Call<T>) : Call<Result<T>> {
     }
 
     override fun execute(): Response<Result<T>?> {
-        return Response.success(Result.success(delegate.execute().body()!!))
+        val response = delegate.execute()
+        val body = bodyOf(response.body())
+        return if (response.isSuccessful && body != null) {
+            Response.success(Result.success(body))
+        } else {
+            Response.success(Result.failure(Exception("Error: ${response.code()} \n Message: ${response.message()}")))
+        }
     }
 
     override fun isExecuted(): Boolean {
@@ -64,7 +79,7 @@ class ResultCall<T>(val delegate: Call<T>) : Call<Result<T>> {
     }
 
     override fun clone(): Call<Result<T>> {
-        return ResultCall(delegate.clone())
+        return ResultCall(delegate.clone(), isUnit)
     }
 
     override fun request(): Request {
