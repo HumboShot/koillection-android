@@ -1,70 +1,89 @@
 package com.humboshot.koillection.theme
 
-import android.app.Activity
-import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.SideEffect
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.core.view.WindowCompat
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.ReadOnlyComposable
+import androidx.compose.ui.graphics.Color
+
+// The web uses #9e9e9e (light) and #7d7f82 (dark) for secondary text. Those are too faint to read
+// on a phone, so onSurfaceVariant is a little stronger. The web values stay for outlines.
+private val LightColorScheme = lightColorScheme(
+    primary = KoillectionTeal,
+    onPrimary = Color.White,
+    // Web buttons are solid teal with white text, so the floating buttons use the same.
+    primaryContainer = KoillectionTeal,
+    onPrimaryContainer = Color.White,
+    secondary = KoillectionRed,
+    onSecondary = Color.White,
+    tertiary = KoillectionTealDark,
+    onTertiary = Color.White,
+    background = Color.White,
+    onBackground = Color(0xDE000000),
+    surface = Color.White,
+    onSurface = Color(0xDE000000),
+    surfaceVariant = Color(0xFFF0F2F5),
+    onSurfaceVariant = Color(0xFF616161),
+    surfaceContainerLowest = Color.White,
+    surfaceContainerLow = Color(0xFFFAFBFC),
+    surfaceContainer = Color(0xFFF5F7FA),
+    surfaceContainerHigh = Color(0xFFEEF1F5),
+    surfaceContainerHighest = Color(0xFFE8EBF0),
+    outline = Color(0xFF9E9E9E),
+    outlineVariant = Color(0xFFE0E0E0),
+    error = KoillectionWarning,
+    onError = Color.White,
+)
 
 private val DarkColorScheme = darkColorScheme(
-    primary = ColorPrimary,
-    background = ColorBackground,
-    onBackground = ColorPrimaryText
-)
-
-private val LightColorScheme = lightColorScheme(
-    primary = ColorPrimary,
-    background = ColorBackground,
-    onBackground = ColorPrimaryText
-
-    /* Other default colors to override
-    background = Color(0xFFFFFBFE),
-    surface = Color(0xFFFFFBFE),
+    primary = KoillectionTeal,
     onPrimary = Color.White,
+    primaryContainer = KoillectionTeal,
+    onPrimaryContainer = Color.White,
+    secondary = KoillectionTeal,
     onSecondary = Color.White,
+    tertiary = KoillectionTealLight,
     onTertiary = Color.White,
-    onBackground = Color(0xFF1C1B1F),
-    onSurface = Color(0xFF1C1B1F),
-    */
+    background = Color(0xFF2A2A2A),
+    onBackground = Color(0xFFCCCCCC),
+    surface = Color(0xFF2A2A2A),
+    onSurface = Color(0xFFCCCCCC),
+    surfaceVariant = Color(0xFF3A3A3A),
+    onSurfaceVariant = Color(0xFF9A9C9F),
+    surfaceContainerLowest = Color(0xFF1E1E1E),
+    surfaceContainerLow = Color(0xFF222222),
+    surfaceContainer = Color(0xFF262626),
+    surfaceContainerHigh = Color(0xFF303030),
+    surfaceContainerHighest = Color(0xFF383838),
+    outline = Color(0xFF7D7F82),
+    outlineVariant = Color(0xFF3F3F3F),
+    error = KoillectionWarning,
+    onError = Color.White,
 )
 
+/** Uses the Koillection web colors. Light or dark follows the phone. Wallpaper colors are not used. */
 @Composable
 fun KoillectionTheme(
     darkTheme: Boolean = isSystemInDarkTheme(),
-    // Dynamic color is available on Android 12+
-    dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColorScheme
-        else -> LightColorScheme
+    CompositionLocalProvider(
+        LocalKoillectionColors provides if (darkTheme) DarkKoillectionColors else LightKoillectionColors
+    ) {
+        MaterialTheme(
+            colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme,
+            typography = Typography,
+            content = content
+        )
     }
-    val view = LocalView.current
-    if (!view.isInEditMode) {
-        SideEffect {
-            val window = (view.context as Activity).window
-            window.statusBarColor = colorScheme.primary.toArgb()
-            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = darkTheme
-        }
-    }
+}
 
-    MaterialTheme(
-        colorScheme = colorScheme,
-        typography = Typography,
-        content = content
-    )
+object KoillectionTheme {
+    val colors: KoillectionColors
+        @Composable
+        @ReadOnlyComposable
+        get() = LocalKoillectionColors.current
 }
