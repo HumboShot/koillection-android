@@ -1,15 +1,47 @@
 package com.humboshot.koillection.theme
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.graphics.Color
-val ColorPrimary = Color(0xFF379388)
-val ColorBackground = Color(0xFF2a2a2a)
-val ColorPrimaryText = Color(0xFFcccccc)
-val ColorSecondaryText= Color(0xFF7d7f82)
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Colors from the Koillection web themes (assets/styles/themes/light.css and dark.css).
+val KoillectionTeal = Color(0xFF009688)
+val KoillectionTealLight = Color(0xFF1AB0A2)
+val KoillectionTealLightest = Color(0xFF80CBC4)
+val KoillectionTealDark = Color(0xFF006355)
+val KoillectionRed = Color(0xFFE74646)
+val KoillectionWarning = Color(0xFFE53935)
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+/** Colors for the parts of the web layout that Material 3 has no role for. */
+@Immutable
+data class KoillectionColors(
+    val header: Color,
+    val onHeader: Color,
+    val sidebar: Color,
+    val onSidebar: Color,
+    val sidebarLogo: Color,
+    val sidebarSelected: Color,
+    val sidebarDivider: Color,
+)
+
+val LightKoillectionColors = KoillectionColors(
+    header = Color(0xFFF5F7FA),
+    onHeader = Color(0xDE000000),
+    sidebar = KoillectionTeal,
+    onSidebar = Color(0xFFF0F2F5),
+    sidebarLogo = KoillectionTealLight,
+    sidebarSelected = KoillectionTealDark,
+    sidebarDivider = KoillectionTealLight,
+)
+
+val DarkKoillectionColors = KoillectionColors(
+    header = Color(0xFF222222),
+    onHeader = Color(0xFFCCCCCC),
+    sidebar = Color(0xFF222222),
+    onSidebar = Color(0xFFCCCCCC),
+    sidebarLogo = Color(0xFF2A2A2A),
+    sidebarSelected = KoillectionTeal,
+    sidebarDivider = Color(0xFF7D7F82),
+)
+
+val LocalKoillectionColors = staticCompositionLocalOf { LightKoillectionColors }

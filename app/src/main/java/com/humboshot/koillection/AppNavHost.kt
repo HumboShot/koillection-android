@@ -13,6 +13,7 @@ import com.humboshot.koillection.destinations.CollectionForm
 import com.humboshot.koillection.destinations.ItemDetail
 import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.MainCollection
+import com.humboshot.koillection.destinations.withTrail
 import com.humboshot.koillection.ui.collection.CollectionDetailScreen
 import com.humboshot.koillection.ui.collection.CollectionDetailViewModel
 import com.humboshot.koillection.ui.collection.CollectionFormScreen
@@ -32,10 +33,10 @@ fun AppNavHost(
     modifier: Modifier = Modifier
 ) {
     val openCollection: (KCollection) -> Unit = { collection ->
-        navHostController.navigate(CollectionDetail.createRoute(collection.id, collection.title))
+        navHostController.navigateDown(CollectionDetail.createRoute(collection.id, collection.title))
     }
     val openItem: (Item) -> Unit = { item ->
-        navHostController.navigate(ItemDetail.createRoute(item.id, item.name))
+        navHostController.navigateDown(ItemDetail.createRoute(item.id, item.name))
     }
 
     NavHost(
@@ -48,7 +49,7 @@ fun AppNavHost(
             RefreshOnResult(entry, viewModel::getCollections)
             CollectionScreen(
                 onCollectionClick = openCollection,
-                onAddCollection = { navHostController.navigate(CollectionForm.createRoute()) },
+                onAddCollection = { navHostController.navigateDown(CollectionForm.createRoute()) },
                 viewModel = viewModel
             )
         }
@@ -58,9 +59,9 @@ fun AppNavHost(
             CollectionDetailScreen(
                 onCollectionClick = openCollection,
                 onItemClick = openItem,
-                onAddItem = { collectionId -> navHostController.navigate(ItemForm.createRoute(collectionId)) },
-                onAddSubCollection = { parentId -> navHostController.navigate(CollectionForm.createRoute(parentId)) },
-                onEdit = { collectionId -> navHostController.navigate(CollectionForm.editRoute(collectionId)) },
+                onAddItem = { collectionId -> navHostController.navigateDown(ItemForm.createRoute(collectionId)) },
+                onAddSubCollection = { parentId -> navHostController.navigateDown(CollectionForm.createRoute(parentId)) },
+                onEdit = { collectionId -> navHostController.navigateDown(CollectionForm.editRoute(collectionId)) },
                 onDeleted = { navHostController.popWithRefresh() },
                 viewModel = viewModel
             )
@@ -70,7 +71,7 @@ fun AppNavHost(
             RefreshOnResult(entry, viewModel::refresh)
             ItemScreen(
                 onItemClick = openItem,
-                onEdit = { item -> navHostController.navigate(ItemForm.editRoute(item.id)) },
+                onEdit = { item -> navHostController.navigateDown(ItemForm.editRoute(item.id)) },
                 onDeleted = { navHostController.popWithRefresh() },
                 viewModel = viewModel
             )
@@ -89,3 +90,5 @@ fun AppNavHost(
         }
     }
 }
+
+private fun NavHostController.navigateDown(route: String) = navigate(withTrail(route, currentBackStackEntry))
