@@ -9,11 +9,13 @@ import androidx.navigation.compose.composable
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.destinations.CollectionDetail
+import com.humboshot.koillection.destinations.CollectionForm
 import com.humboshot.koillection.destinations.ItemDetail
 import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.ui.collection.CollectionDetailScreen
 import com.humboshot.koillection.ui.collection.CollectionDetailViewModel
+import com.humboshot.koillection.ui.collection.CollectionFormScreen
 import com.humboshot.koillection.ui.collection.CollectionScreen
 import com.humboshot.koillection.ui.collection.CollectionViewModel
 import com.humboshot.koillection.ui.common.RefreshOnResult
@@ -43,7 +45,11 @@ fun AppNavHost(
         composable(route = MainCollection.route) { entry ->
             val viewModel: CollectionViewModel = viewModel()
             RefreshOnResult(entry, viewModel::getCollections)
-            CollectionScreen(onCollectionClick = openCollection, viewModel = viewModel)
+            CollectionScreen(
+                onCollectionClick = openCollection,
+                onAddCollection = { navHostController.navigate(CollectionForm.createRoute()) },
+                viewModel = viewModel
+            )
         }
         composable(route = CollectionDetail.route, arguments = CollectionDetail.arguments) { entry ->
             val viewModel: CollectionDetailViewModel = viewModel()
@@ -52,6 +58,7 @@ fun AppNavHost(
                 onCollectionClick = openCollection,
                 onItemClick = openItem,
                 onAddItem = { collectionId -> navHostController.navigate(ItemForm.createRoute(collectionId)) },
+                onAddSubCollection = { parentId -> navHostController.navigate(CollectionForm.createRoute(parentId)) },
                 viewModel = viewModel
             )
         }
@@ -67,6 +74,9 @@ fun AppNavHost(
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
             ItemFormScreen(onSaved = { navHostController.popWithRefresh() })
+        }
+        composable(route = CollectionForm.route, arguments = CollectionForm.arguments) {
+            CollectionFormScreen(onSaved = { navHostController.popWithRefresh() })
         }
     }
 }

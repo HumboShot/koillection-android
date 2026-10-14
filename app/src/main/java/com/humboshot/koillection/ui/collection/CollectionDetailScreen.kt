@@ -18,10 +18,14 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
@@ -29,7 +33,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -41,6 +47,7 @@ import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.ui.common.EmptyState
 import com.humboshot.koillection.ui.common.ErrorState
 import com.humboshot.koillection.ui.common.KoillectionImage
+import com.humboshot.koillection.ui.common.TopBarActions
 import com.humboshot.koillection.ui.item.DatumRow
 import com.humboshot.koillection.ui.item.ItemCard
 
@@ -50,9 +57,28 @@ fun CollectionDetailScreen(
     onCollectionClick: (KCollection) -> Unit,
     onItemClick: (Item) -> Unit,
     onAddItem: (collectionId: String) -> Unit,
+    onAddSubCollection: (parentId: String) -> Unit,
     viewModel: CollectionDetailViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var menuOpen by remember { mutableStateOf(false) }
+
+    state.collection?.let { collection ->
+        TopBarActions {
+            IconButton(onClick = { menuOpen = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "More actions")
+            }
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text("New sub-collection") },
+                    onClick = {
+                        menuOpen = false
+                        onAddSubCollection(collection.id)
+                    }
+                )
+            }
+        }
+    }
     val gridState = rememberLazyGridState()
 
     val shouldLoadMore by remember {

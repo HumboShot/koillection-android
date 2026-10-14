@@ -74,3 +74,25 @@ object ItemForm : AppDestination {
 
     fun editRoute(itemId: String): String = "item_form?$ITEM_ID_ARG=$itemId&$TITLE_ARG=${Uri.encode("Edit item")}"
 }
+
+object CollectionForm : AppDestination {
+    const val COLLECTION_ID_ARG = "collectionId"
+    const val PARENT_ID_ARG = "parentId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String =
+        "collection_form?$COLLECTION_ID_ARG={$COLLECTION_ID_ARG}&$PARENT_ID_ARG={$PARENT_ID_ARG}&$TITLE_ARG={$TITLE_ARG}"
+    override val title: String = "New collection"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(COLLECTION_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(PARENT_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+    )
+
+    fun createRoute(parentId: String? = null): String =
+        if (parentId == null) "collection_form" else "collection_form?$PARENT_ID_ARG=$parentId"
+
+    fun editRoute(collectionId: String): String =
+        "collection_form?$COLLECTION_ID_ARG=$collectionId&$TITLE_ARG=${Uri.encode("Edit collection")}"
+}
