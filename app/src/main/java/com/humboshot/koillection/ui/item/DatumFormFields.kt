@@ -14,7 +14,9 @@ data class DatumFormFields(
 ) {
     fun validate(): String? = when {
         label.isBlank() -> "Label is required"
-        type == "number" && value.isNotBlank() && value.trim().toBigDecimalOrNull() == null ->
+        // The item screen hides a datum with an empty value, so the user could not edit it again.
+        value.isBlank() -> "Value is required"
+        type == "number" && value.trim().toBigDecimalOrNull() == null ->
             "Value must be a number"
         else -> null
     }

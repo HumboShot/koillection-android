@@ -29,6 +29,11 @@ class DatumFormFieldsTest {
     }
 
     @Test
+    fun validate_rejectsBlankValue() {
+        assertNotNull(DatumFormFields(label = "Author", value = "  ").validate())
+    }
+
+    @Test
     fun validate_rejectsNonNumberForNumberType() {
         assertNotNull(DatumFormFields(label = "Pages", type = "number", value = "abc").validate())
         assertNull(DatumFormFields(label = "Pages", type = "number", value = "12.5").validate())
