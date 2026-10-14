@@ -58,6 +58,7 @@ fun CollectionDetailScreen(
     onItemClick: (Item) -> Unit,
     onAddItem: (collectionId: String) -> Unit,
     onAddSubCollection: (parentId: String) -> Unit,
+    onEdit: (collectionId: String) -> Unit,
     viewModel: CollectionDetailViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -74,6 +75,13 @@ fun CollectionDetailScreen(
                     onClick = {
                         menuOpen = false
                         onAddSubCollection(collection.id)
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Edit collection") },
+                    onClick = {
+                        menuOpen = false
+                        onEdit(collection.id)
                     }
                 )
             }

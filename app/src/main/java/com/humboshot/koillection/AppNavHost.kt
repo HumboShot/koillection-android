@@ -59,6 +59,7 @@ fun AppNavHost(
                 onItemClick = openItem,
                 onAddItem = { collectionId -> navHostController.navigate(ItemForm.createRoute(collectionId)) },
                 onAddSubCollection = { parentId -> navHostController.navigate(CollectionForm.createRoute(parentId)) },
+                onEdit = { collectionId -> navHostController.navigate(CollectionForm.editRoute(collectionId)) },
                 viewModel = viewModel
             )
         }
