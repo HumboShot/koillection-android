@@ -9,6 +9,7 @@ import com.humboshot.koillection.MainApplication
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import java.io.File
 import java.security.KeyStore
 import javax.crypto.KeyGenerator
 import javax.crypto.SecretKey
@@ -17,6 +18,8 @@ import javax.crypto.SecretKey
  * Keeps the server, username, password and token. Each value is encrypted with an
  * AES key in the Android Keystore, so the key cannot leave the device. The values are
  * decrypted once and kept in memory.
+ *
+ * Keystore and disk work is slow, so call [load] and [signIn] from a background thread.
  */
 object AuthStore : Session {
     private const val PREFS_NAME = "koillection_auth"
@@ -33,24 +36,38 @@ object AuthStore : Session {
 
     private val context: Context get() = MainApplication.applicationContext
     private val prefs: SharedPreferences by lazy { context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE) }
-    private val cipher = SecretCipher { keystoreKey() }
+    private val key: SecretKey by lazy { keystoreKey() }
+    private val cipher = SecretCipher { key }
+
+    @Volatile
+    private var loaded = false
 
     @Volatile
     private var stored: Stored? = null
 
-    private val _isLoggedIn = MutableStateFlow(false)
-    val isLoggedIn: StateFlow<Boolean> = _isLoggedIn.asStateFlow()
+    private val _isLoggedIn = MutableStateFlow<Boolean?>(null)
 
-    init {
-        removeLegacyStorage()
-        stored = load()
-        _isLoggedIn.value = stored != null
+    /** Null until [load] finishes. */
+    val isLoggedIn: StateFlow<Boolean?> = _isLoggedIn.asStateFlow()
+
+    override val serverUrl: String? get() = current()?.serverUrl
+    override val username: String? get() = current()?.username
+    override val password: String? get() = current()?.password
+    override val token: String? get() = current()?.token
+
+    private fun current(): Stored? {
+        if (!loaded) load()
+        return stored
     }
 
-    override val serverUrl: String? get() = stored?.serverUrl
-    override val username: String? get() = stored?.username
-    override val password: String? get() = stored?.password
-    override val token: String? get() = stored?.token
+    @Synchronized
+    fun load() {
+        if (loaded) return
+        removeLegacyStorage()
+        stored = readStored()
+        loaded = true
+        _isLoggedIn.value = stored != null
+    }
 
     @Synchronized
     fun signIn(serverUrl: String, username: String, password: String, token: String) {
@@ -61,24 +78,26 @@ object AuthStore : Session {
             putString(KEY_TOKEN, cipher.encrypt(token))
         }
         stored = Stored(serverUrl, username, password, token)
+        loaded = true
         _isLoggedIn.value = true
     }
 
     @Synchronized
     override fun updateToken(token: String) {
-        val current = stored ?: return
+        val existing = stored ?: return
         prefs.edit { putString(KEY_TOKEN, cipher.encrypt(token)) }
-        stored = current.copy(token = token)
+        stored = existing.copy(token = token)
     }
 
     @Synchronized
     override fun signOut() {
         prefs.edit { clear() }
         stored = null
+        loaded = true
         _isLoggedIn.value = false
     }
 
-    private fun load(): Stored? {
+    private fun readStored(): Stored? {
         val values = listOf(KEY_SERVER, KEY_USERNAME, KEY_PASSWORD, KEY_TOKEN).map { prefs.getString(it, null) }
         if (values.any { it == null }) return null
 
@@ -107,8 +126,11 @@ object AuthStore : Session {
         return generator.generateKey()
     }
 
-    /** Removes the data of the old EncryptedSharedPreferences storage. */
+    /** Removes the data of the old EncryptedSharedPreferences storage, if it is still there. */
     private fun removeLegacyStorage() {
+        val legacyFile = File(context.dataDir, "shared_prefs/$LEGACY_PREFS_NAME.xml")
+        if (!legacyFile.exists()) return
+
         context.deleteSharedPreferences(LEGACY_PREFS_NAME)
         runCatching {
             KeyStore.getInstance("AndroidKeyStore").apply { load(null) }.deleteEntry(LEGACY_KEY_ALIAS)

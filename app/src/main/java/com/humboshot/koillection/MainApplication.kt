@@ -12,6 +12,8 @@ import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.util.DebugLogger
 import com.humboshot.koillection.api.core.ApiClient
+import com.humboshot.koillection.auth.AuthStore
+import kotlin.concurrent.thread
 
 class MainApplication : Application(), ImageLoaderFactory {
     init {
@@ -26,6 +28,11 @@ class MainApplication : Application(), ImageLoaderFactory {
             get() {
                 return INSTANCE.applicationContext
             }
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        thread(name = "auth-load") { AuthStore.load() }
     }
 
     override fun newImageLoader(): ImageLoader {

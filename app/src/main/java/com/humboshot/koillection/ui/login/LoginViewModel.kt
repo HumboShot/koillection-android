@@ -7,11 +7,13 @@ import com.humboshot.koillection.api.core.ApiClient
 import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.data.login.AuthenticationRequest
 import com.humboshot.koillection.extension.normalizeServerUrl
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class LoginViewModel(val passwordFieldState: TextFieldState = TextFieldState()) : ViewModel() {
     private val loggingIn: MutableStateFlow<Boolean> = MutableStateFlow(false)
@@ -53,8 +55,10 @@ class LoginViewModel(val passwordFieldState: TextFieldState = TextFieldState()) 
             val password: String = passwordFieldState.text.toString()
 
             ApiClient.loginService(validatedDomain).login(AuthenticationRequest(username, password))
+                .mapCatching {
+                    withContext(Dispatchers.IO) { AuthStore.signIn(validatedDomain, username, password, it.token) }
+                }
                 .onSuccess {
-                    AuthStore.signIn(validatedDomain, username, password, it.token)
                     loggingIn.value = false
                 }
                 .onFailure {

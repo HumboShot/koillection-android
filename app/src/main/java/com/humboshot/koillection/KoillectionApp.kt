@@ -38,10 +38,11 @@ fun KoillectionApp(
     val context = LocalContext.current
 
     LaunchedEffect(isAuthenticated) {
-        if (!isAuthenticated) context.clearImageCache()
+        if (isAuthenticated == false) context.clearImageCache()
     }
 
-    if (isAuthenticated) {
+    // The saved login loads on a background thread at start. Show only the window background until then.
+    if (isAuthenticated ?: return) {
         val backStackEntry by navHostController.currentBackStackEntryAsState()
         val isRoot = backStackEntry?.destination?.route == MainCollection.route
         val title = backStackEntry?.arguments?.getString(TITLE_ARG) ?: MainCollection.title
