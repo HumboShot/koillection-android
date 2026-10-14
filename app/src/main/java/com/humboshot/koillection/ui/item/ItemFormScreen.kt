@@ -68,7 +68,7 @@ fun ItemFormScreen(
         }
         Button(
             onClick = viewModel::save,
-            enabled = !state.isSaving,
+            enabled = !state.isSaving && !state.isLoading,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(if (state.isSaving) "Saving…" else "Save")

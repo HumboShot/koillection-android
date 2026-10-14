@@ -1,5 +1,6 @@
 package com.humboshot.koillection.ui.item
 
+import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.item.ItemWrite
 import com.humboshot.koillection.extension.toIri
 
@@ -20,4 +21,22 @@ data class ItemFormFields(
         collection = collectionId.toIri("collections"),
         visibility = visibility,
     )
+
+    /** Gives only the fields that differ from [original], or null when nothing changed. */
+    fun toPatch(original: Item): ItemWrite? {
+        val patch = ItemWrite(
+            name = name.trim().takeIf { it != original.name },
+            quantity = quantity.toInt().takeIf { it != original.quantity },
+            visibility = visibility.takeIf { it != original.visibility },
+        )
+        return patch.takeIf { it != ItemWrite() }
+    }
+
+    companion object {
+        fun from(item: Item) = ItemFormFields(
+            name = item.name,
+            quantity = item.quantity.toString(),
+            visibility = item.visibility,
+        )
+    }
 }

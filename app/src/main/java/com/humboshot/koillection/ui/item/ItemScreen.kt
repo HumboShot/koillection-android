@@ -18,6 +18,7 @@ import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.AssistChip
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -51,6 +52,7 @@ import com.humboshot.koillection.ui.common.TopBarActions
 @Composable
 fun ItemScreen(
     onItemClick: (Item) -> Unit,
+    onEdit: (Item) -> Unit,
     onDeleted: () -> Unit,
     viewModel: ItemViewModel = viewModel()
 ) {
@@ -62,8 +64,11 @@ fun ItemScreen(
         if (state.isDeleted) onDeleted()
     }
 
-    if (state.item != null) {
+    state.item?.let { item ->
         TopBarActions {
+            IconButton(onClick = { onEdit(item) }) {
+                Icon(Icons.Default.Edit, contentDescription = "Edit item")
+            }
             IconButton(onClick = { confirmDelete = true }) {
                 Icon(Icons.Default.Delete, contentDescription = "Delete item")
             }

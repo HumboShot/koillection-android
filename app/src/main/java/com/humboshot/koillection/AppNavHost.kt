@@ -60,6 +60,7 @@ fun AppNavHost(
             RefreshOnResult(entry, viewModel::refresh)
             ItemScreen(
                 onItemClick = openItem,
+                onEdit = { item -> navHostController.navigate(ItemForm.editRoute(item.id)) },
                 onDeleted = { navHostController.popWithRefresh() },
                 viewModel = viewModel
             )
