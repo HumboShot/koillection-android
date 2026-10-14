@@ -11,6 +11,9 @@ fun String.buildUrl(): String {
 /** Extracts the id from an API Platform IRI such as `/api/collections/<id>`. */
 fun String.iriId(): String = substringAfterLast('/')
 
+/** Builds an API Platform IRI from an id, for example `/api/collections/<id>`. */
+fun String.toIri(resource: String): String = "/api/$resource/$this"
+
 /**
  * Turns user input like `collection.example.com`, `Https://collection.example.com/` or
  * `https//collection.example.com` into a base URL Retrofit accepts (`https://collection.example.com/`).

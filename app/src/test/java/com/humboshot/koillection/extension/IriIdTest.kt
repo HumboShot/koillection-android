@@ -16,4 +16,14 @@ class IriIdTest {
     fun iriId_returnsInputWhenNoSlash() {
         assertEquals("abc", "abc".iriId())
     }
+
+    @Test
+    fun toIri_buildsResourcePath() {
+        assertEquals("/api/collections/abc", "abc".toIri("collections"))
+    }
+
+    @Test
+    fun toIri_roundTripsWithIriId() {
+        assertEquals("abc", "abc".toIri("items").iriId())
+    }
 }
