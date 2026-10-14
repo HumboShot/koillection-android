@@ -52,6 +52,17 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 }
         }
     }
+
+    fun delete() {
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            ItemRepository.deleteItem(itemId)
+                .onSuccess { _state.update { it.copy(isLoading = false, isDeleted = true) } }
+                .onFailure { throwable ->
+                    _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to delete item") }
+                }
+        }
+    }
 }
 
 data class ItemViewState(
@@ -61,4 +72,5 @@ data class ItemViewState(
     val tags: List<Tag> = emptyList(),
     val relatedItems: List<Item> = emptyList(),
     val error: String? = null,
+    val isDeleted: Boolean = false,
 )

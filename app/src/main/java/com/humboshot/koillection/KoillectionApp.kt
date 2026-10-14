@@ -11,7 +11,9 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.navigation.NavHostController
@@ -19,6 +21,8 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.destinations.TITLE_ARG
+import com.humboshot.koillection.ui.common.LocalTopBarActions
+import com.humboshot.koillection.ui.common.TopBarActionsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,6 +34,7 @@ fun KoillectionApp(
         val backStackEntry by navHostController.currentBackStackEntryAsState()
         val isRoot = backStackEntry?.destination?.route == MainCollection.route
         val title = backStackEntry?.arguments?.getString(TITLE_ARG) ?: MainCollection.title
+        val topBarActions = remember { TopBarActionsState() }
 
         Scaffold(
             topBar = {
@@ -43,6 +48,7 @@ fun KoillectionApp(
                         }
                     },
                     actions = {
+                        topBarActions.actionsFor(backStackEntry)?.invoke(this)
                         if (isRoot) {
                             IconButton(onClick = { appState.signOut() }) {
                                 Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = "Log out")
@@ -52,7 +58,9 @@ fun KoillectionApp(
                 )
             }
         ) { innerPadding ->
-            AppNavHost(navHostController, appState, Modifier.padding(innerPadding))
+            CompositionLocalProvider(LocalTopBarActions provides topBarActions) {
+                AppNavHost(navHostController, appState, Modifier.padding(innerPadding))
+            }
         }
     } else {
         Scaffold { innerPadding ->

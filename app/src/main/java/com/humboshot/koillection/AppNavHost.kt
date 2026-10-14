@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.compose.composable
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.item.Item
@@ -11,8 +12,13 @@ import com.humboshot.koillection.destinations.CollectionDetail
 import com.humboshot.koillection.destinations.ItemDetail
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.ui.collection.CollectionDetailScreen
+import com.humboshot.koillection.ui.collection.CollectionDetailViewModel
 import com.humboshot.koillection.ui.collection.CollectionScreen
+import com.humboshot.koillection.ui.collection.CollectionViewModel
+import com.humboshot.koillection.ui.common.RefreshOnResult
+import com.humboshot.koillection.ui.common.popWithRefresh
 import com.humboshot.koillection.ui.item.ItemScreen
+import com.humboshot.koillection.ui.item.ItemViewModel
 
 @Composable
 fun AppNavHost(
@@ -32,14 +38,24 @@ fun AppNavHost(
         startDestination = MainCollection.route,
         modifier
     ) {
-        composable(route = MainCollection.route) {
-            CollectionScreen(onCollectionClick = openCollection)
+        composable(route = MainCollection.route) { entry ->
+            val viewModel: CollectionViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::getCollections)
+            CollectionScreen(onCollectionClick = openCollection, viewModel = viewModel)
         }
-        composable(route = CollectionDetail.route, arguments = CollectionDetail.arguments) {
-            CollectionDetailScreen(onCollectionClick = openCollection, onItemClick = openItem)
+        composable(route = CollectionDetail.route, arguments = CollectionDetail.arguments) { entry ->
+            val viewModel: CollectionDetailViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            CollectionDetailScreen(onCollectionClick = openCollection, onItemClick = openItem, viewModel = viewModel)
         }
-        composable(route = ItemDetail.route, arguments = ItemDetail.arguments) {
-            ItemScreen(onItemClick = openItem)
+        composable(route = ItemDetail.route, arguments = ItemDetail.arguments) { entry ->
+            val viewModel: ItemViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            ItemScreen(
+                onItemClick = openItem,
+                onDeleted = { navHostController.popWithRefresh() },
+                viewModel = viewModel
+            )
         }
     }
 }
