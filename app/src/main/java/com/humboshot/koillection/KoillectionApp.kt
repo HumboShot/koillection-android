@@ -75,7 +75,7 @@ fun KoillectionApp(
         }
     } else {
         Scaffold { innerPadding ->
-            LoginNavHost(navHostController, appState, Modifier.padding(innerPadding))
+            LoginNavHost(navHostController, Modifier.padding(innerPadding))
         }
     }
 }
