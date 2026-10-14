@@ -6,6 +6,7 @@ import com.humboshot.koillection.data.collection.CollectionWrite
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.datum.Datum
 import com.humboshot.koillection.data.item.Item
+import okhttp3.MultipartBody
 
 object CollectionRepository {
     private val service: CollectionService
@@ -35,4 +36,6 @@ object CollectionRepository {
         service.updateCollection(id, collection)
 
     suspend fun deleteCollection(id: String): Result<Unit> = service.deleteCollection(id)
+
+    suspend fun uploadImage(id: String, file: MultipartBody.Part): Result<KCollection> = service.uploadImage(id, file)
 }

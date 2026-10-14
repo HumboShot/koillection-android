@@ -16,21 +16,28 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.humboshot.koillection.ui.common.ImagePickerField
 import com.humboshot.koillection.ui.common.VisibilityPicker
 
 @Composable
 fun CollectionFormScreen(
     onSaved: () -> Unit,
+    onImageChanged: () -> Unit,
     viewModel: CollectionFormViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val contentResolver = LocalContext.current.contentResolver
 
     LaunchedEffect(state.isSaved) {
         if (state.isSaved) onSaved()
+    }
+    LaunchedEffect(state.imageChanged) {
+        if (state.imageChanged) onImageChanged()
     }
 
     Column(
@@ -40,6 +47,13 @@ fun CollectionFormScreen(
             .verticalScroll(rememberScrollState())
             .padding(16.dp)
     ) {
+        if (state.isEditing) {
+            ImagePickerField(
+                path = state.imagePath,
+                isUploading = state.isUploading,
+                onPick = { uri -> viewModel.uploadImage(contentResolver, uri) }
+            )
+        }
         OutlinedTextField(
             value = state.fields.title,
             onValueChange = viewModel::onTitleChange,
@@ -59,7 +73,7 @@ fun CollectionFormScreen(
         }
         Button(
             onClick = viewModel::save,
-            enabled = !state.isSaving && !state.isLoading,
+            enabled = !state.isSaving && !state.isLoading && !state.isUploading,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(if (state.isSaving) "Saving…" else "Save")

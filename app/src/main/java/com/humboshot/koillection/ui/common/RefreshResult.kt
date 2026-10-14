@@ -22,7 +22,11 @@ fun RefreshOnResult(entry: NavBackStackEntry, onRefresh: () -> Unit) {
     }
 }
 
-fun NavHostController.popWithRefresh() {
+fun NavHostController.markPreviousForRefresh() {
     previousBackStackEntry?.savedStateHandle?.set(REFRESH_KEY, true)
+}
+
+fun NavHostController.popWithRefresh() {
+    markPreviousForRefresh()
     popBackStack()
 }

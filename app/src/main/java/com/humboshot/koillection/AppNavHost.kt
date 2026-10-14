@@ -19,6 +19,7 @@ import com.humboshot.koillection.ui.collection.CollectionFormScreen
 import com.humboshot.koillection.ui.collection.CollectionScreen
 import com.humboshot.koillection.ui.collection.CollectionViewModel
 import com.humboshot.koillection.ui.common.RefreshOnResult
+import com.humboshot.koillection.ui.common.markPreviousForRefresh
 import com.humboshot.koillection.ui.common.popWithRefresh
 import com.humboshot.koillection.ui.item.ItemFormScreen
 import com.humboshot.koillection.ui.item.ItemScreen
@@ -75,10 +76,16 @@ fun AppNavHost(
             )
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
-            ItemFormScreen(onSaved = { navHostController.popWithRefresh() })
+            ItemFormScreen(
+                onSaved = { navHostController.popWithRefresh() },
+                onImageChanged = { navHostController.markPreviousForRefresh() }
+            )
         }
         composable(route = CollectionForm.route, arguments = CollectionForm.arguments) {
-            CollectionFormScreen(onSaved = { navHostController.popWithRefresh() })
+            CollectionFormScreen(
+                onSaved = { navHostController.popWithRefresh() },
+                onImageChanged = { navHostController.markPreviousForRefresh() }
+            )
         }
     }
 }
