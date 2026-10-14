@@ -130,8 +130,22 @@ fun ItemScreen(
             }
 
             items(state.data, key = { it.id }) { datum ->
-                Box(Modifier.padding(horizontal = 16.dp)) {
+                val editable = datum.type in EDITABLE_DATUM_TYPES
+                Box(
+                    Modifier
+                        .clickable(enabled = editable) { viewModel.openDatumEditor(datum) }
+                        .padding(horizontal = 16.dp)
+                ) {
                     DatumRow(datum, onImageClick = { fullScreenImage = it })
+                }
+            }
+
+            item {
+                TextButton(
+                    onClick = { viewModel.openDatumEditor(null) },
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                ) {
+                    Text("Add field")
                 }
             }
 
@@ -181,6 +195,16 @@ fun ItemScreen(
                 )
             }
         }
+    }
+
+    state.datumEditor?.let { editor ->
+        DatumDialog(
+            editor = editor,
+            onFieldsChange = viewModel::onDatumFieldsChange,
+            onSave = viewModel::saveDatum,
+            onDelete = viewModel::deleteDatum,
+            onDismiss = viewModel::closeDatumEditor
+        )
     }
 
     if (confirmDelete) {
