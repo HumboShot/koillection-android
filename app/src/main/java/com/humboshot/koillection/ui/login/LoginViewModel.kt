@@ -3,9 +3,8 @@ package com.humboshot.koillection.ui.login
 import androidx.compose.foundation.text.input.TextFieldState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.humboshot.koillection.UserContext
 import com.humboshot.koillection.api.core.ApiClient
-import com.humboshot.koillection.api.services.LoginService
+import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.data.login.AuthenticationRequest
 import com.humboshot.koillection.extension.normalizeServerUrl
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -40,11 +39,10 @@ class LoginViewModel(val passwordFieldState: TextFieldState = TextFieldState()) 
         }
     }
 
-    fun login(username: String, domain: String, didLogin: (Boolean) -> Unit) {
+    fun login(username: String, domain: String) {
         val validatedDomain = domain.normalizeServerUrl()
         if (validatedDomain == null) {
             errorMessage.value = "Invalid server address"
-            didLogin(false)
             return
         }
 
@@ -52,22 +50,16 @@ class LoginViewModel(val passwordFieldState: TextFieldState = TextFieldState()) 
             loggingIn.value = true
             errorMessage.value = ""
 
-            // Temporary set the domain in the UserContext
-            UserContext().setDomain(validatedDomain)
-
             val password: String = passwordFieldState.text.toString()
 
-            val apiClient = ApiClient.getInstance().create(LoginService::class.java)
-            apiClient.login(AuthenticationRequest(username, password))
+            ApiClient.loginService(validatedDomain).login(AuthenticationRequest(username, password))
                 .onSuccess {
-                    UserContext.instance.setUser(username, password, validatedDomain, it.token)
+                    AuthStore.signIn(validatedDomain, username, password, it.token)
                     loggingIn.value = false
-                    didLogin(true)
                 }
                 .onFailure {
                     errorMessage.value = it.message ?: "Login failed"
                     loggingIn.value = false
-                    didLogin(false)
                 }
         }
     }

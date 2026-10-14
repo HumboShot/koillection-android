@@ -12,10 +12,13 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
@@ -23,6 +26,7 @@ import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.destinations.TITLE_ARG
 import com.humboshot.koillection.ui.common.LocalTopBarActions
 import com.humboshot.koillection.ui.common.TopBarActionsState
+import com.humboshot.koillection.ui.common.clearImageCache
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -30,7 +34,14 @@ fun KoillectionApp(
     navHostController: NavHostController = rememberNavController(),
     appState: AppState = rememberAppState(navHostController)
 ) {
-    if (appState.isAuthenticated) {
+    val isAuthenticated by appState.isAuthenticated.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+
+    LaunchedEffect(isAuthenticated) {
+        if (!isAuthenticated) context.clearImageCache()
+    }
+
+    if (isAuthenticated) {
         val backStackEntry by navHostController.currentBackStackEntryAsState()
         val isRoot = backStackEntry?.destination?.route == MainCollection.route
         val title = backStackEntry?.arguments?.getString(TITLE_ARG) ?: MainCollection.title

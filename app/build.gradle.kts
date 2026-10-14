@@ -31,6 +31,7 @@ android {
         targetCompatibility = JavaVersion.VERSION_21
     }
     buildFeatures {
+        buildConfig = true
         compose = true
     }
     packaging {
@@ -70,7 +71,6 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.8.0")
 
     // Encrypted Shared Prefs
-    implementation("androidx.security:security-crypto-ktx:1.1.0-alpha07")
 
     // Image library
     implementation("io.coil-kt:coil:2.7.0")

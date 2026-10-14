@@ -1,10 +1,10 @@
 package com.humboshot.koillection.extension
 
-import com.humboshot.koillection.UserContext
+import com.humboshot.koillection.auth.AuthStore
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
 fun String.buildUrl(): String {
-    val url = UserContext().baseAddress.trimEnd('/') + "/" + this.trimStart('/')
+    val url = AuthStore.serverUrl.orEmpty().trimEnd('/') + "/" + this.trimStart('/')
     return url
 }
 

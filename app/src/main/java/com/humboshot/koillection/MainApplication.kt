@@ -11,6 +11,7 @@ import coil.decode.SvgDecoder
 import coil.disk.DiskCache
 import coil.memory.MemoryCache
 import coil.util.DebugLogger
+import com.humboshot.koillection.api.core.ApiClient
 
 class MainApplication : Application(), ImageLoaderFactory {
     init {
@@ -28,7 +29,8 @@ class MainApplication : Application(), ImageLoaderFactory {
     }
 
     override fun newImageLoader(): ImageLoader {
-        return ImageLoader.Builder(this)
+        val builder = ImageLoader.Builder(this)
+            .okHttpClient { ApiClient.okHttpClient }
             .crossfade(true)
             .respectCacheHeaders(false)
             .memoryCache {
@@ -51,7 +53,9 @@ class MainApplication : Application(), ImageLoaderFactory {
 
                 add(SvgDecoder.Factory())
             }
-            .logger(DebugLogger())
-            .build()
+
+        if (BuildConfig.DEBUG) builder.logger(DebugLogger())
+
+        return builder.build()
     }
 }

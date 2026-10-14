@@ -1,40 +1,21 @@
 package com.humboshot.koillection
 
-import android.content.Context
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavController
+import com.humboshot.koillection.auth.AuthStore
+import kotlinx.coroutines.flow.StateFlow
 
 class AppState(
     val navController: NavController
 ) {
-    private val userContext: UserContext = UserContext()
+    /** Also turns false when the server rejects the saved password during a token refresh. */
+    val isAuthenticated: StateFlow<Boolean> = AuthStore.isLoggedIn
 
-    var isAuthenticated by mutableStateOf(checkAuthenticatedState())
-        private set
-
-    private fun checkAuthenticatedState(): Boolean {
-        return userContext.jwt.isNotEmpty()
-    }
-
-    fun singedIn() {
-        isAuthenticated = true
-    }
-
-    fun signOut() {
-        userContext.removeUserFromStorage()
-        isAuthenticated = false
-    }
+    fun signOut() = AuthStore.signOut()
 }
 
 @Composable
-fun rememberAppState(
-    navController: NavController,
-    context: Context = LocalContext.current
-) = remember(navController, context) {
+fun rememberAppState(navController: NavController) = remember(navController) {
     AppState(navController)
 }

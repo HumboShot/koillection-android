@@ -112,11 +112,7 @@ fun LoginScreen(
 
             Button(
                 onClick = {
-                    viewModel.login(username, domain) { success ->
-                        if (success) {
-                            appState.singedIn()
-                        }
-                    }
+                    viewModel.login(username, domain)
                 }
             ) {
                 Text(stringResource(R.string.login_login_button))
