@@ -127,6 +127,40 @@ class TokenAuthenticatorTest {
     }
 
     @Test
+    fun loginWithoutToken_failsRequestWithoutCrash() {
+        server.enqueue(MockResponse().setResponseCode(401))
+        server.enqueue(MockResponse().setBody("""{"message":"ok"}"""))
+
+        assertEquals(401, get())
+        assertFalse(session.signedOut)
+        assertEquals("old", session.token)
+    }
+
+    @Test
+    fun failingTokenSave_failsRequestWithoutCrash() {
+        val failingSession = object : Session by session {
+            override fun updateToken(token: String) = error("Keystore failure")
+        }
+        val loginService = { url: String ->
+            Retrofit.Builder()
+                .baseUrl(url)
+                .addConverterFactory(MoshiConverterFactory.create(Moshi.Builder().addLast(KotlinJsonAdapterFactory()).build()))
+                .build()
+                .create(LoginService::class.java)
+        }
+        val failingClient = OkHttpClient.Builder()
+            .addInterceptor(AuthInterceptor(failingSession))
+            .authenticator(TokenAuthenticator(failingSession, loginService))
+            .build()
+        server.enqueue(MockResponse().setResponseCode(401))
+        server.enqueue(MockResponse().setBody("""{"token":"new"}"""))
+
+        val code = failingClient.newCall(Request.Builder().url(server.url("/api/items")).build()).execute().use { it.code }
+
+        assertEquals(401, code)
+    }
+
+    @Test
     fun tokenAlreadyRefreshed_retriesWithoutLogin() {
         server.enqueue(MockResponse().setResponseCode(401))
         server.enqueue(MockResponse().setBody("{}"))

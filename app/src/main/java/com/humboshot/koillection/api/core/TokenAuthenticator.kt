@@ -7,7 +7,6 @@ import okhttp3.Authenticator
 import okhttp3.Request
 import okhttp3.Response
 import okhttp3.Route
-import java.io.IOException
 
 /**
  * Gets a new token when the server answers 401. The server has no refresh token,
@@ -32,16 +31,22 @@ class TokenAuthenticator(
             val username = session.username ?: return null
             val password = session.password ?: return null
 
+            // OkHttp rethrows a non-IO exception from an authenticator on its own thread, which crashes
+            // the app. A bad login body or a Keystore error must therefore only fail this request.
             val login = try {
                 loginService(serverUrl).loginCall(AuthenticationRequest(username, password)).execute()
-            } catch (e: IOException) {
+            } catch (e: Exception) {
                 return null
             }
 
             val token = login.body()?.token
             return when {
                 login.isSuccessful && token != null -> {
-                    session.updateToken(token)
+                    try {
+                        session.updateToken(token)
+                    } catch (e: Exception) {
+                        return null
+                    }
                     response.request.withToken(token)
                 }
                 // Only a rejected password ends the session. A 5xx is a server problem, so keep the credentials.
