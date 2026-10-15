@@ -4,6 +4,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import com.humboshot.koillection.R
 import com.humboshot.koillection.data.user.Feature
+import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.TagList
 
 /**
@@ -29,6 +30,16 @@ fun drawerEntries(
                     icon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
                     selected = isCurrent(TagList.ROUTE_PREFIX),
                     onClick = { open(TagList.createRoute()) },
+                )
+            )
+        }
+        if (enabled(Feature.LOANS)) {
+            add(
+                DrawerEntry(
+                    label = LoanList.title,
+                    icon = { Icon(painterResource(R.drawable.ic_loans), contentDescription = null) },
+                    selected = isCurrent(LoanList.ROUTE_PREFIX),
+                    onClick = { open(LoanList.createRoute()) },
                 )
             )
         }

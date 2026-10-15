@@ -12,9 +12,11 @@ import com.humboshot.koillection.destinations.CollectionDetail
 import com.humboshot.koillection.destinations.CollectionForm
 import com.humboshot.koillection.destinations.ItemDetail
 import com.humboshot.koillection.destinations.ItemForm
+import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.withTrail
+import com.humboshot.koillection.extension.iriId
 import com.humboshot.koillection.ui.collection.CollectionDetailScreen
 import com.humboshot.koillection.ui.collection.CollectionDetailViewModel
 import com.humboshot.koillection.ui.collection.CollectionFormScreen
@@ -26,6 +28,8 @@ import com.humboshot.koillection.ui.common.popWithRefresh
 import com.humboshot.koillection.ui.item.ItemFormScreen
 import com.humboshot.koillection.ui.item.ItemScreen
 import com.humboshot.koillection.ui.item.ItemViewModel
+import com.humboshot.koillection.ui.loan.LoanListScreen
+import com.humboshot.koillection.ui.loan.LoanListViewModel
 import com.humboshot.koillection.ui.tag.TagListScreen
 import com.humboshot.koillection.ui.tag.TagListViewModel
 
@@ -83,6 +87,16 @@ fun AppNavHost(
             val viewModel: TagListViewModel = viewModel()
             RefreshOnResult(entry, viewModel::refresh)
             TagListScreen(onTagClick = {}, viewModel = viewModel)
+        }
+        composable(route = LoanList.route, arguments = LoanList.arguments) { entry ->
+            val viewModel: LoanListViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            LoanListScreen(
+                onLoanClick = { loan, itemName ->
+                    navHostController.navigateDown(ItemDetail.createRoute(loan.item.iriId(), itemName))
+                },
+                viewModel = viewModel
+            )
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
             ItemFormScreen(

@@ -141,3 +141,18 @@ object TagList : AppDestination {
 
     fun createRoute(): String = "tags?$TITLE_ARG=${Uri.encode(title)}"
 }
+
+object LoanList : AppDestination {
+    const val ROUTE_PREFIX = "loan"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "loans?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Loans"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "loans?$TITLE_ARG=${Uri.encode(title)}"
+}
