@@ -1,5 +1,6 @@
 package com.humboshot.koillection.ui.navigation
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,7 +15,6 @@ import androidx.compose.foundation.layout.statusBarsPadding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
@@ -41,13 +41,13 @@ data class DrawerEntry(
     val onClick: () -> Unit = {},
 )
 
-/** The side menu. It follows the web sidebar: logo, sections, then the user and Log out at the bottom. */
+/** The side menu. It follows the web sidebar: logo, sections, then the user at the bottom. The user opens the profile. */
 @Composable
 fun AppDrawer(
     entries: List<DrawerEntry>,
     username: String?,
     serverHost: String?,
-    onSignOut: () -> Unit,
+    onProfileClick: () -> Unit,
 ) {
     val colors = KoillectionTheme.colors
     val itemColors = NavigationDrawerItemDefaults.colors(
@@ -105,7 +105,10 @@ fun AppDrawer(
             verticalAlignment = Alignment.CenterVertically,
             modifier = Modifier
                 .fillMaxWidth()
+                .clickable(onClick = onProfileClick)
+                .navigationBarsPadding()
                 .padding(horizontal = 16.dp, vertical = 12.dp)
+                .padding(bottom = 8.dp)
         ) {
             Icon(Icons.Default.AccountCircle, contentDescription = null)
             Column {
@@ -121,16 +124,5 @@ fun AppDrawer(
                 }
             }
         }
-        NavigationDrawerItem(
-            label = { Text("Log out") },
-            icon = { Icon(Icons.AutoMirrored.Filled.ExitToApp, contentDescription = null) },
-            selected = false,
-            onClick = onSignOut,
-            shape = RectangleShape,
-            colors = itemColors,
-            modifier = Modifier
-                .navigationBarsPadding()
-                .padding(bottom = 8.dp)
-        )
     }
 }

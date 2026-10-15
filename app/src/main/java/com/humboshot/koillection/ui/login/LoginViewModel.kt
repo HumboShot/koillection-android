@@ -1,6 +1,5 @@
 package com.humboshot.koillection.ui.login
 
-import androidx.compose.foundation.text.input.TextFieldState
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.humboshot.koillection.api.core.ApiClient
@@ -10,66 +9,68 @@ import com.humboshot.koillection.extension.normalizeServerUrl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.IOException
 
-class LoginViewModel(val passwordFieldState: TextFieldState = TextFieldState()) : ViewModel() {
-    private val loggingIn: MutableStateFlow<Boolean> = MutableStateFlow(false)
-    private val errorMessage: MutableStateFlow<String> = MutableStateFlow("")
+class LoginViewModel : ViewModel() {
+    // The password lives only in this ViewModel, not in the saved instance state.
+    private val _state = MutableStateFlow(LoginViewState(server = AuthStore.lastServer?.toServerInput().orEmpty()))
+    val state: StateFlow<LoginViewState> = _state.asStateFlow()
 
-    private val _state = MutableStateFlow(LoginViewState())
-    val state: StateFlow<LoginViewState>
-        get() = _state
+    fun onServerChange(server: String) = _state.update { it.copy(server = server, error = null) }
 
-    init {
-        viewModelScope.launch {
-            combine(
-                loggingIn,
-                errorMessage
-            ) { loggingIn, errorMessage ->
-                LoginViewState(
-                    loggingIn,
-                    errorMessage
-                )
-            }.catch { throwable ->
-                throw throwable
-            }.collect {
-                _state.value = it
-            }
-        }
-    }
+    fun onUsernameChange(username: String) = _state.update { it.copy(username = username, error = null) }
 
-    fun login(username: String, domain: String) {
-        val validatedDomain = domain.normalizeServerUrl()
-        if (validatedDomain == null) {
-            errorMessage.value = "Invalid server address"
+    fun onPasswordChange(password: String) = _state.update { it.copy(password = password, error = null) }
+
+    fun togglePasswordVisible() = _state.update { it.copy(isPasswordVisible = !it.isPasswordVisible) }
+
+    fun login() {
+        val current = _state.value
+        if (current.isLoggingIn || !current.canLogin) return
+        val serverUrl = current.server.normalizeServerUrl()
+        if (serverUrl == null) {
+            _state.update { it.copy(error = "Enter a valid server address, for example collection.example.com") }
             return
         }
 
+        // Keyboards often add a space after a suggested word. The password stays as typed.
+        val request = AuthenticationRequest(current.username.trim(), current.password)
+
         viewModelScope.launch {
-            loggingIn.value = true
-            errorMessage.value = ""
-
-            val password: String = passwordFieldState.text.toString()
-
-            ApiClient.loginService(validatedDomain).login(AuthenticationRequest(username, password))
-                .mapCatching {
-                    withContext(Dispatchers.IO) { AuthStore.signIn(validatedDomain, username, password, it.token) }
+            _state.update { it.copy(isLoggingIn = true, error = null) }
+            withContext(Dispatchers.IO) {
+                runCatching {
+                    val response = ApiClient.loginService(serverUrl).loginCall(request).execute()
+                    val token = response.body()?.token
+                    when {
+                        response.code() == 401 -> error("Wrong username or password")
+                        !response.isSuccessful || token == null -> error("Login failed (HTTP ${response.code()})")
+                        else -> AuthStore.signIn(serverUrl, request.username, request.password, token)
+                    }
                 }
-                .onSuccess {
-                    loggingIn.value = false
-                }
-                .onFailure {
-                    errorMessage.value = it.message ?: "Login failed"
-                    loggingIn.value = false
-                }
+            }.onFailure { throwable ->
+                val message = if (throwable is IOException) "Cannot reach the server" else throwable.message ?: "Login failed"
+                _state.update { it.copy(error = message) }
+            }
+            _state.update { it.copy(isLoggingIn = false) }
         }
     }
 }
 
+/** Shows a saved server URL the way the user types it: no "https://" and no "/" at the end. */
+internal fun String.toServerInput(): String = removePrefix("https://").trimEnd('/')
+
 data class LoginViewState(
-    val loggingIn: Boolean = false,
-    val errorMessage: String = ""
-)
+    val server: String = "",
+    val username: String = "",
+    val password: String = "",
+    val isPasswordVisible: Boolean = false,
+    val isLoggingIn: Boolean = false,
+    val error: String? = null,
+) {
+    val canLogin: Boolean get() = server.isNotBlank() && username.isNotBlank() && password.isNotEmpty()
+}

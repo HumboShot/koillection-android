@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <style name="Theme.Koillection" parent="android:Theme.Material.NoActionBar">
+    <style name="Theme.Koillection" parent="Theme.AppCompat.NoActionBar">
         <item name="android:windowBackground">@color/koillection_dark_background</item>
     </style>
 </resources>

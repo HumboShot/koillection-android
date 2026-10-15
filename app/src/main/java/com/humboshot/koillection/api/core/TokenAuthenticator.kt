@@ -29,7 +29,11 @@ class TokenAuthenticator(
 
             val serverUrl = session.serverUrl ?: return null
             val username = session.username ?: return null
-            val password = session.password ?: return null
+            // Without a screen lock the app does not save the password, so the user must log in again.
+            val password = session.password ?: run {
+                session.signOut()
+                return null
+            }
 
             // OkHttp rethrows a non-IO exception from an authenticator on its own thread, which crashes
             // the app. A bad login body or a Keystore error must therefore only fail this request.

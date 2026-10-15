@@ -7,10 +7,7 @@ import retrofit2.http.Body
 import retrofit2.http.POST
 
 interface LoginService {
-    @POST("/api/authentication_token")
-    suspend fun login(@Body model: AuthenticationRequest): Result<AuthenticationResult>
-
-    /** Blocking variant for the OkHttp authenticator, which runs on an OkHttp thread. */
+    /** Blocking, because the OkHttp authenticator runs it on an OkHttp thread. The login screen runs it on IO. */
     @POST("/api/authentication_token")
     fun loginCall(@Body model: AuthenticationRequest): Call<AuthenticationResult>
 }

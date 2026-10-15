@@ -1,6 +1,7 @@
 package com.humboshot.koillection
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -30,6 +31,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.destinations.MainCollection
+import com.humboshot.koillection.destinations.Profile
 import com.humboshot.koillection.data.user.enabledFeatures
 import com.humboshot.koillection.destinations.breadcrumb
 import com.humboshot.koillection.destinations.rootRoutes
@@ -41,6 +43,7 @@ import com.humboshot.koillection.ui.navigation.AppDrawer
 import com.humboshot.koillection.ui.navigation.SessionViewModel
 import com.humboshot.koillection.ui.navigation.drawerEntries
 import com.humboshot.koillection.ui.navigation.Breadcrumb
+import com.humboshot.koillection.ui.login.UnlockScreen
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 
@@ -51,6 +54,7 @@ fun KoillectionApp(
     appState: AppState = rememberAppState(navHostController)
 ) {
     val isAuthenticated by appState.isAuthenticated.collectAsStateWithLifecycle()
+    val isLocked by appState.isLocked.collectAsStateWithLifecycle()
     val context = LocalContext.current
 
     LaunchedEffect(isAuthenticated) {
@@ -59,6 +63,12 @@ fun KoillectionApp(
 
     // The saved login loads on a background thread at start. Show only the window background until then.
     if (isAuthenticated ?: return) {
+        if (isLocked) {
+            Scaffold { innerPadding ->
+                Box(Modifier.padding(innerPadding)) { UnlockScreen(onSignOut = appState::signOut) }
+            }
+            return
+        }
         val backStackEntry by navHostController.currentBackStackEntryAsState()
         val isRoot = backStackEntry?.destination?.route in rootRoutes
         val topBarActions = remember { TopBarActionsState() }
@@ -91,10 +101,7 @@ fun KoillectionApp(
                     ),
                     username = user?.username ?: AuthStore.username,
                     serverHost = AuthStore.serverUrl?.toHttpUrlOrNull()?.host,
-                    onSignOut = {
-                        scope.launch { drawerState.close() }
-                        appState.signOut()
-                    }
+                    onProfileClick = { closeAndOpenRoot(Profile.createRoute()) },
                 )
             }
         ) {
@@ -135,14 +142,14 @@ fun KoillectionApp(
                         navHostController,
                         appState,
                         user?.enabledFeatures(),
+                        user,
                         Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)
                     )
                 }
             }
         }
     } else {
-        Scaffold { innerPadding ->
-            LoginNavHost(navHostController, Modifier.padding(innerPadding))
-        }
+        // The login screen draws its color under the system bars and handles the insets itself.
+        LoginNavHost(navHostController)
     }
 }

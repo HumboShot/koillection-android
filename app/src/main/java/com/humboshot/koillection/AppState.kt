@@ -12,6 +12,9 @@ class AppState(
     /** Also turns false when the server rejects the saved password during a token refresh. */
     val isAuthenticated: StateFlow<Boolean?> = AuthStore.isLoggedIn
 
+    /** True until the user unlocks the saved password with the fingerprint or the screen lock. */
+    val isLocked: StateFlow<Boolean> = AuthStore.isLocked
+
     fun signOut() = AuthStore.signOut()
 }
 

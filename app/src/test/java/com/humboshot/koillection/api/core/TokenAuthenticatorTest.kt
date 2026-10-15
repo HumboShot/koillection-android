@@ -22,7 +22,7 @@ import retrofit2.converter.moshi.MoshiConverterFactory
 class TokenAuthenticatorTest {
     private class FakeSession(override var serverUrl: String?) : Session {
         override val username: String = "user"
-        override val password: String = "secret"
+        override var password: String? = "secret"
         override var token: String? = "old"
         var signedOut = false
 
@@ -69,6 +69,16 @@ class TokenAuthenticatorTest {
 
     private fun get(url: String = server.url("/api/items").toString()) =
         client.newCall(Request.Builder().url(url).build()).execute().use { it.code }
+
+    @Test
+    fun unauthorized_withoutSavedPassword_signsOut() {
+        session.password = null
+        server.enqueue(MockResponse().setResponseCode(401))
+
+        assertEquals(401, get())
+        assertTrue(session.signedOut)
+        assertEquals(1, server.requestCount)
+    }
 
     @Test
     fun unauthorized_logsInAgainAndRetriesWithNewToken() {

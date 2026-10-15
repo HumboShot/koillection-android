@@ -8,7 +8,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.item.Item
+import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.data.user.Feature
+import com.humboshot.koillection.data.user.User
+import com.humboshot.koillection.destinations.Profile
+import com.humboshot.koillection.ui.profile.ProfileScreen
+import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import com.humboshot.koillection.destinations.AlbumDetail
 import com.humboshot.koillection.destinations.AlbumForm
 import com.humboshot.koillection.destinations.AlbumList
@@ -93,6 +98,7 @@ fun AppNavHost(
     navHostController: NavHostController,
     appState: AppState,
     features: Set<Feature>?,
+    user: User?,
     modifier: Modifier = Modifier
 ) {
     val openCollection: (KCollection) -> Unit = { collection ->
@@ -223,6 +229,13 @@ fun AppNavHost(
             TemplateDetailScreen(
                 onDeleted = { navHostController.popWithRefresh() },
                 onChanged = { navHostController.markPreviousForRefresh() }
+            )
+        }
+        composable(route = Profile.route, arguments = Profile.arguments) {
+            ProfileScreen(
+                user = user,
+                serverHost = AuthStore.serverUrl?.toHttpUrlOrNull()?.host,
+                onSignOut = appState::signOut
             )
         }
         composable(route = History.route, arguments = History.arguments) { entry ->

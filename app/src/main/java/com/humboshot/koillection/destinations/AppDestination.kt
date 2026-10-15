@@ -493,6 +493,19 @@ object History : AppDestination {
     fun createRoute(): String = "history?$TITLE_ARG=${Uri.encode(title)}"
 }
 
+object Profile : AppDestination {
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "profile?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Profile"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "profile?$TITLE_ARG=${Uri.encode(title)}"
+}
+
 object InventoryList : AppDestination {
     /** Matches "inventories" and "inventory/". */
     const val ROUTE_PREFIX = "inventor"
@@ -537,4 +550,5 @@ val rootRoutes: Set<String> = setOf(
     History.route,
     Statistics.route,
     InventoryList.route,
+    Profile.route,
 )

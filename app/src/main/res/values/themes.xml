@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <!-- The window background shows before Compose draws, so it uses the Koillection page color. -->
-    <style name="Theme.Koillection" parent="android:Theme.Material.Light.NoActionBar">
+    <!-- The window background shows before Compose draws, so it uses the Koillection page color.
+         The parent is AppCompat, because the fingerprint dialog on Android 8.1 and lower needs it. -->
+    <style name="Theme.Koillection" parent="Theme.AppCompat.Light.NoActionBar">
         <item name="android:windowBackground">@android:color/white</item>
     </style>
 </resources>

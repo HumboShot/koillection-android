@@ -9,6 +9,18 @@ data class User(
     val id: String,
     @Json(name = "username")
     val username: String,
+    @Json(name = "email")
+    val email: String? = null,
+    @Json(name = "avatar")
+    val avatar: String? = null,
+    @Json(name = "currency")
+    val currency: String? = null,
+    @Json(name = "locale")
+    val locale: String? = null,
+    @Json(name = "timezone")
+    val timezone: String? = null,
+    @Json(name = "visibility")
+    val visibility: String? = null,
     @Json(name = "wishlistsFeatureEnabled")
     val wishlistsFeatureEnabled: Boolean = true,
     @Json(name = "tagsFeatureEnabled")
