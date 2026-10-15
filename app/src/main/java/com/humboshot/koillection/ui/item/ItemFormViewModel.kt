@@ -5,7 +5,9 @@ import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.humboshot.koillection.data.datum.Datum
 import com.humboshot.koillection.data.item.Item
+import com.humboshot.koillection.data.repository.DatumRepository
 import com.humboshot.koillection.data.repository.ItemRepository
 import com.humboshot.koillection.data.repository.TagRepository
 import com.humboshot.koillection.data.repository.readImagePart
@@ -25,6 +27,9 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     private val collectionId: String? = savedStateHandle[ItemForm.COLLECTION_ID_ARG]
     private var original: Item? = null
     private var originalTagIds: List<String> = emptyList()
+    /** The editable data on the server. It changes while a save runs, so a retry sends only what is left. */
+    private var originalData: List<Datum> = emptyList()
+    private var nextDraftKey = 0
 
     private val _state = MutableStateFlow(ItemFormViewState(isEditRoute = itemId != null))
     val state: StateFlow<ItemFormViewState> = _state.asStateFlow()
@@ -45,12 +50,16 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             val itemTags = async { ItemRepository.getTags(id) }
+            val itemData = async { ItemRepository.getData(id) }
             ItemRepository.getItem(id)
                 .onSuccess { item ->
                     original = item
                     val tagsResult = itemTags.await()
                     val tags = tagsResult.getOrDefault(emptyList())
                     originalTagIds = tags.map { it.id }
+                    val dataResult = itemData.await()
+                    val data = dataResult.getOrDefault(emptyList())
+                    originalData = data.filter { it.type in EDITABLE_DATUM_TYPES }
                     _state.update {
                         it.copy(
                             isLoading = false,
@@ -59,7 +68,11 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                             itemTags = tags,
                             // Without the current tags, a save would replace them. So the tag field stays off.
                             tagsLoadFailed = tagsResult.isFailure,
-                            imagePath = item.imageSmallThumbnail ?: item.image
+                            imagePath = item.imageSmallThumbnail ?: item.image,
+                            drafts = originalData.map { datum -> DatumDraft(nextDraftKey++, datum, DatumFormFields.from(datum)) },
+                            otherData = data.filter { datum -> datum.type !in EDITABLE_DATUM_TYPES },
+                            // Without the current fields, the form cannot show or change them.
+                            dataLoadFailed = dataResult.isFailure,
                         )
                     }
                 }
@@ -80,6 +93,43 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun addTag(tag: Tag) = _state.update { it.copy(fields = it.fields.addTag(tag.id)) }
 
     fun removeTag(tagId: String) = _state.update { it.copy(fields = it.fields.removeTag(tagId)) }
+
+    fun openDatumEditor(draft: DatumDraft?) = _state.update {
+        it.copy(
+            datumEditor = DatumEditorState(
+                key = draft?.key,
+                canChangeType = draft?.original == null,
+                fields = draft?.fields ?: DatumFormFields(),
+            )
+        )
+    }
+
+    fun onDatumFieldsChange(fields: DatumFormFields) =
+        _state.update { it.copy(datumEditor = it.datumEditor?.copy(fields = fields, error = null)) }
+
+    fun closeDatumEditor() = _state.update { it.copy(datumEditor = null) }
+
+    /** Keeps the field in the form. The server gets it when the user saves the item. */
+    fun applyDatumEditor() {
+        val editor = _state.value.datumEditor ?: return
+        editor.fields.validate()?.let { error ->
+            _state.update { it.copy(datumEditor = editor.copy(error = error)) }
+            return
+        }
+        _state.update { state ->
+            val drafts = if (editor.key == null) {
+                state.drafts + DatumDraft(nextDraftKey++, null, editor.fields)
+            } else {
+                state.drafts.map { if (it.key == editor.key) it.copy(fields = editor.fields) else it }
+            }
+            state.copy(drafts = drafts, datumEditor = null, error = null)
+        }
+    }
+
+    fun removeDatum() {
+        val key = _state.value.datumEditor?.key ?: return
+        _state.update { state -> state.copy(drafts = state.drafts.filterNot { it.key == key }, datumEditor = null) }
+    }
 
     fun uploadImage(contentResolver: ContentResolver, uri: Uri) {
         val target = original ?: return
@@ -105,27 +155,64 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             return
         }
 
-        val item = original
-        val tagBase = if (_state.value.tagsLoadFailed) fields.tagIds else originalTagIds
-        val patch = item?.let { fields.toPatch(it, tagBase) }
-        if (item != null && patch == null) {
-            _state.update { it.copy(isSaved = true) }
-            return
-        }
-
         viewModelScope.launch {
             _state.update { it.copy(isSaving = true, error = null) }
-            val result = if (item != null) {
-                ItemRepository.updateItem(item.id, checkNotNull(patch))
-            } else {
-                ItemRepository.createItem(fields.toCreate(checkNotNull(collectionId)))
+            val item = saveItem(fields).getOrElse { throwable ->
+                _state.update { it.copy(isSaving = false, error = throwable.message ?: "Failed to save item") }
+                return@launch
             }
-            result
+            saveData(item.id)
                 .onSuccess { _state.update { it.copy(isSaving = false, isSaved = true) } }
                 .onFailure { throwable ->
-                    _state.update { it.copy(isSaving = false, error = throwable.message ?: "Failed to save item") }
+                    _state.update {
+                        it.copy(isSaving = false, error = "The item is saved, but a field failed: ${throwable.message ?: "unknown error"}")
+                    }
                 }
         }
+    }
+
+    /** Creates or updates the item. After a create, the form works as an edit form, so a retry does not create it again. */
+    private suspend fun saveItem(fields: ItemFormFields): Result<Item> {
+        val item = original
+        if (item == null) {
+            return ItemRepository.createItem(fields.toCreate(checkNotNull(collectionId))).onSuccess { created ->
+                original = created
+                originalTagIds = fields.tagIds
+            }
+        }
+        val tagBase = if (_state.value.tagsLoadFailed) fields.tagIds else originalTagIds
+        val patch = fields.toPatch(item, tagBase) ?: return Result.success(item)
+        return ItemRepository.updateItem(item.id, patch).onSuccess { updated ->
+            original = updated
+            originalTagIds = fields.tagIds
+        }
+    }
+
+    private suspend fun saveData(itemId: String): Result<Unit> {
+        if (_state.value.dataLoadFailed) return Result.success(Unit)
+        val changes = datumChanges(originalData, _state.value.drafts)
+        for (datum in changes.deletes) {
+            DatumRepository.deleteDatum(datum.id).onFailure { return Result.failure(it) }
+            originalData = originalData - datum
+        }
+        for ((datum, patch) in changes.patches) {
+            val updated = DatumRepository.updateDatum(datum.id, patch).getOrElse { return Result.failure(it) }
+            originalData = originalData.map { if (it.id == datum.id) updated else it }
+            replaceDraftOriginal(datum.id, updated)
+        }
+        for (draft in changes.creates) {
+            val position = (originalData + _state.value.otherData).nextPosition()
+            val created = DatumRepository.createDatum(draft.fields.toCreate(itemId, position)).getOrElse { return Result.failure(it) }
+            originalData = originalData + created
+            _state.update { state ->
+                state.copy(drafts = state.drafts.map { if (it.key == draft.key) it.copy(original = created) else it })
+            }
+        }
+        return Result.success(Unit)
+    }
+
+    private fun replaceDraftOriginal(id: String, datum: Datum) = _state.update { state ->
+        state.copy(drafts = state.drafts.map { if (it.original?.id == id) it.copy(original = datum) else it })
     }
 }
 
@@ -135,6 +222,12 @@ data class ItemFormViewState(
     /** The tags the item had when the form loaded. They name the chips if [allTags] failed to load. */
     val itemTags: List<Tag> = emptyList(),
     val tagsLoadFailed: Boolean = false,
+    /** The text and number fields, in order. */
+    val drafts: List<DatumDraft> = emptyList(),
+    /** Fields of other types. The app only shows them. */
+    val otherData: List<Datum> = emptyList(),
+    val dataLoadFailed: Boolean = false,
+    val datumEditor: DatumEditorState? = null,
     val isLoading: Boolean = false,
     val isEditRoute: Boolean = false,
     val isEditing: Boolean = false,
@@ -155,3 +248,12 @@ data class ItemFormViewState(
             return fields.tagIds.mapNotNull(known::get)
         }
 }
+
+/** The add or edit dialog for one field. A null [key] means a new field. */
+data class DatumEditorState(
+    val key: Int?,
+    /** The API cannot change the type of a saved field. */
+    val canChangeType: Boolean,
+    val fields: DatumFormFields,
+    val error: String? = null,
+)

@@ -21,19 +21,19 @@ import androidx.compose.ui.unit.dp
 fun DatumDialog(
     editor: DatumEditorState,
     onFieldsChange: (DatumFormFields) -> Unit,
-    onSave: () -> Unit,
+    onDone: () -> Unit,
     onDelete: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val fields = editor.fields
-    val isNew = editor.target == null
+    val isNew = editor.key == null
 
     AlertDialog(
         onDismissRequest = onDismiss,
         title = { Text(if (isNew) "Add field" else "Edit field") },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                if (isNew) {
+                if (editor.canChangeType) {
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         EDITABLE_DATUM_TYPES.forEach { type ->
                             FilterChip(
@@ -70,12 +70,12 @@ fun DatumDialog(
             }
         },
         confirmButton = {
-            TextButton(onClick = onSave, enabled = !editor.isSaving) { Text("Save") }
+            TextButton(onClick = onDone) { Text("Done") }
         },
         dismissButton = {
             Row {
                 if (!isNew) {
-                    TextButton(onClick = onDelete, enabled = !editor.isSaving) {
+                    TextButton(onClick = onDelete) {
                         Text("Delete", color = MaterialTheme.colorScheme.error)
                     }
                 }

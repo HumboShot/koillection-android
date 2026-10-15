@@ -7,7 +7,6 @@ import com.humboshot.koillection.data.datum.Datum
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.loan.Loan
 import com.humboshot.koillection.data.loan.todayUtcMillis
-import com.humboshot.koillection.data.repository.DatumRepository
 import com.humboshot.koillection.data.repository.ItemRepository
 import com.humboshot.koillection.data.repository.LoanRepository
 import com.humboshot.koillection.data.tag.Tag
@@ -55,63 +54,6 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 }
                 .onFailure { throwable ->
                     _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to load item") }
-                }
-        }
-    }
-
-    fun openDatumEditor(datum: Datum?) = _state.update {
-        it.copy(datumEditor = DatumEditorState(target = datum, fields = datum?.let(DatumFormFields::from) ?: DatumFormFields()))
-    }
-
-    fun onDatumFieldsChange(fields: DatumFormFields) =
-        _state.update { it.copy(datumEditor = it.datumEditor?.copy(fields = fields, error = null)) }
-
-    fun closeDatumEditor() = _state.update { it.copy(datumEditor = null) }
-
-    fun saveDatum() {
-        val editor = _state.value.datumEditor ?: return
-        if (editor.isSaving) return
-        editor.fields.validate()?.let { error ->
-            _state.update { it.copy(datumEditor = editor.copy(error = error)) }
-            return
-        }
-
-        val target = editor.target
-        val patch = target?.let { editor.fields.toPatch(it) }
-        if (target != null && patch == null) {
-            closeDatumEditor()
-            return
-        }
-
-        val nextPosition = (_state.value.data.maxOfOrNull { it.position ?: 0 } ?: 0) + 1
-        runDatumChange {
-            if (target != null) {
-                DatumRepository.updateDatum(target.id, checkNotNull(patch)).map { }
-            } else {
-                DatumRepository.createDatum(editor.fields.toCreate(itemId, nextPosition)).map { }
-            }
-        }
-    }
-
-    fun deleteDatum() {
-        val editor = _state.value.datumEditor ?: return
-        if (editor.isSaving) return
-        val target = editor.target ?: return
-        runDatumChange { DatumRepository.deleteDatum(target.id) }
-    }
-
-    private fun runDatumChange(change: suspend () -> Result<Unit>) {
-        viewModelScope.launch {
-            _state.update { it.copy(datumEditor = it.datumEditor?.copy(isSaving = true, error = null)) }
-            change()
-                .onSuccess {
-                    closeDatumEditor()
-                    refresh()
-                }
-                .onFailure { throwable ->
-                    _state.update {
-                        it.copy(datumEditor = it.datumEditor?.copy(isSaving = false, error = throwable.message ?: "Failed to save field"))
-                    }
                 }
         }
     }
@@ -186,7 +128,6 @@ data class ItemViewState(
     val relatedItems: List<Item> = emptyList(),
     val error: String? = null,
     val isDeleted: Boolean = false,
-    val datumEditor: DatumEditorState? = null,
     val loans: List<Loan> = emptyList(),
     val lendDialog: LendDialogState? = null,
     val isChangingLoan: Boolean = false,
@@ -198,14 +139,6 @@ data class ItemViewState(
 data class LendDialogState(
     val lentTo: String = "",
     val dateMillis: Long,
-    val isSaving: Boolean = false,
-    val error: String? = null,
-)
-
-/** The add or edit dialog for one datum. A null [target] means a new datum. */
-data class DatumEditorState(
-    val target: Datum?,
-    val fields: DatumFormFields,
     val isSaving: Boolean = false,
     val error: String? = null,
 )

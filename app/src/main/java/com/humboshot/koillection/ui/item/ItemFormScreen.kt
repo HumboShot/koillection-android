@@ -9,10 +9,12 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -88,6 +90,10 @@ fun ItemFormScreen(
                 onRemove = { viewModel.removeTag(it.id) }
             )
         }
+        ItemDataSection(
+            state = state,
+            onOpen = viewModel::openDatumEditor,
+        )
         Text("Visibility", style = MaterialTheme.typography.labelLarge)
         VisibilityPicker(
             selected = state.fields.visibility,
@@ -104,5 +110,46 @@ fun ItemFormScreen(
         ) {
             Text(if (state.isSaving) "Saving…" else "Save")
         }
+    }
+
+    state.datumEditor?.let { editor ->
+        DatumDialog(
+            editor = editor,
+            onFieldsChange = viewModel::onDatumFieldsChange,
+            onDone = viewModel::applyDatumEditor,
+            onDelete = viewModel::removeDatum,
+            onDismiss = viewModel::closeDatumEditor
+        )
+    }
+}
+
+/** The fields of the item. Changes go to the server when the user saves the item. */
+@Composable
+private fun ItemDataSection(state: ItemFormViewState, onOpen: (DatumDraft?) -> Unit) {
+    Column {
+        Text("Fields", style = MaterialTheme.typography.labelLarge)
+        if (state.dataLoadFailed) {
+            Text(
+                text = "The fields could not load. Saving keeps the fields as they are.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+            return
+        }
+        state.drafts.forEach { draft ->
+            Column(Modifier.fillMaxWidth().clickable { onOpen(draft) }) {
+                DatumRow(draft.preview())
+            }
+        }
+        if (state.otherData.isNotEmpty()) {
+            Text(
+                text = "You can change these fields only on the web:",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            state.otherData.forEach { DatumRow(it) }
+        }
+        TextButton(onClick = { onOpen(null) }) { Text("Add field") }
     }
 }
