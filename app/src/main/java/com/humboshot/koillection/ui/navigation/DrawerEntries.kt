@@ -2,6 +2,7 @@ package com.humboshot.koillection.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import com.humboshot.koillection.R
@@ -11,6 +12,7 @@ import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.Statistics
 import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.TemplateList
+import com.humboshot.koillection.destinations.WishlistList
 
 /**
  * The side menu entries, in the order of the web sidebar. Each feature screen adds its entry to [others].
@@ -28,6 +30,16 @@ fun drawerEntries(
     fun isCurrent(prefix: String) = currentRoute?.startsWith(prefix) == true
 
     val others = buildList {
+        if (enabled(Feature.WISHLISTS)) {
+            add(
+                DrawerEntry(
+                    label = WishlistList.title,
+                    icon = { Icon(Icons.Default.Favorite, contentDescription = null) },
+                    selected = isCurrent(WishlistList.ROUTE_PREFIX),
+                    onClick = { open(WishlistList.createRoute()) },
+                )
+            )
+        }
         if (enabled(Feature.TAGS)) {
             add(
                 DrawerEntry(

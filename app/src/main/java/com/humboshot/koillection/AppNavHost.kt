@@ -25,6 +25,8 @@ import com.humboshot.koillection.destinations.TagForm
 import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.TemplateDetail
 import com.humboshot.koillection.destinations.TemplateList
+import com.humboshot.koillection.destinations.WishlistDetail
+import com.humboshot.koillection.destinations.WishlistList
 import com.humboshot.koillection.destinations.withTrail
 import com.humboshot.koillection.extension.iriId
 import com.humboshot.koillection.ui.choicelist.ChoiceListFormScreen
@@ -56,6 +58,10 @@ import com.humboshot.koillection.ui.tag.TagListViewModel
 import com.humboshot.koillection.ui.template.TemplateDetailScreen
 import com.humboshot.koillection.ui.template.TemplateListScreen
 import com.humboshot.koillection.ui.template.TemplateListViewModel
+import com.humboshot.koillection.ui.wishlist.WishlistDetailScreen
+import com.humboshot.koillection.ui.wishlist.WishlistDetailViewModel
+import com.humboshot.koillection.ui.wishlist.WishlistListScreen
+import com.humboshot.koillection.ui.wishlist.WishlistListViewModel
 
 @Composable
 fun AppNavHost(
@@ -193,6 +199,23 @@ fun AppNavHost(
         }
         composable(route = Statistics.route, arguments = Statistics.arguments) {
             StatisticsScreen(statistics = visibleStatistics(features))
+        }
+        composable(route = WishlistList.route, arguments = WishlistList.arguments) { entry ->
+            val viewModel: WishlistListViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            WishlistListScreen(
+                onWishlistClick = { navHostController.navigateDown(WishlistDetail.createRoute(it.id, it.name)) },
+                viewModel = viewModel
+            )
+        }
+        composable(route = WishlistDetail.route, arguments = WishlistDetail.arguments) { entry ->
+            val viewModel: WishlistDetailViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            WishlistDetailScreen(
+                onWishlistClick = { navHostController.navigateDown(WishlistDetail.createRoute(it.id, it.name)) },
+                onWishClick = {},
+                viewModel = viewModel
+            )
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
             ItemFormScreen(
