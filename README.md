@@ -1,5 +1,5 @@
 # koillection-android
-This is an attempt to make a native Android app for interfacing with a Koillection server. Currently the app is not ready for release.
+An unofficial native Android app for [Koillection](https://github.com/benjaminjonard/koillection) servers. It is not affiliated with the Koillection project.
 
 ## Troubleshooting
 
@@ -64,3 +64,8 @@ From the command line, point `JAVA_HOME` at a JDK 17 or newer, then run `./gradl
 ### Server address
 
 Enter the server as just the domain, for example `collection.example.com`. The app adds `https://` itself. To reach a server on your local network over plain HTTP, type the `http://` prefix explicitly.
+
+## Credits
+
+- The app icon and the other icons in the app are [Material Icons](https://github.com/google/material-design-icons) by Google, used under the [Apache License 2.0](https://www.apache.org/licenses/LICENSE-2.0).
+- [Koillection](https://github.com/benjaminjonard/koillection) is made by Benjamin Jonard.

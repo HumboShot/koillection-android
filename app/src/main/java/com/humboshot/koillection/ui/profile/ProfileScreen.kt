@@ -1,5 +1,6 @@
 package com.humboshot.koillection.ui.profile
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -24,8 +25,11 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.humboshot.koillection.BuildConfig
 import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.data.user.User
 import com.humboshot.koillection.ui.common.KoillectionImage
@@ -106,11 +110,38 @@ fun ProfileScreen(
 
         HorizontalDivider()
 
+        AboutSection()
+
+        HorizontalDivider()
+
         OutlinedButton(onClick = onSignOut, modifier = Modifier.fillMaxWidth()) {
             Text("Log out")
         }
     }
 }
+
+@Composable
+private fun AboutSection() {
+    val uriHandler = LocalUriHandler.current
+    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        Text("About", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
+        ProfileValue("App version", BuildConfig.VERSION_NAME)
+        Text(
+            text = "An unofficial app for Koillection. It is not affiliated with the Koillection project.",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        Text(
+            text = "Icons: Material Icons by Google, Apache License 2.0",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.primary,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier.clickable { uriHandler.openUri(APACHE_LICENSE_URL) }
+        )
+    }
+}
+
+private const val APACHE_LICENSE_URL = "https://www.apache.org/licenses/LICENSE-2.0"
 
 @Composable
 private fun ProfileValue(label: String, value: String?) {
