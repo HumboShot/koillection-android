@@ -18,6 +18,8 @@ import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.destinations.TagList
+import com.humboshot.koillection.destinations.TemplateDetail
+import com.humboshot.koillection.destinations.TemplateList
 import com.humboshot.koillection.destinations.withTrail
 import com.humboshot.koillection.extension.iriId
 import com.humboshot.koillection.ui.choicelist.ChoiceListFormScreen
@@ -38,6 +40,9 @@ import com.humboshot.koillection.ui.loan.LoanListScreen
 import com.humboshot.koillection.ui.loan.LoanListViewModel
 import com.humboshot.koillection.ui.tag.TagListScreen
 import com.humboshot.koillection.ui.tag.TagListViewModel
+import com.humboshot.koillection.ui.template.TemplateDetailScreen
+import com.humboshot.koillection.ui.template.TemplateListScreen
+import com.humboshot.koillection.ui.template.TemplateListViewModel
 
 @Composable
 fun AppNavHost(
@@ -117,6 +122,17 @@ fun AppNavHost(
         }
         composable(route = ChoiceListForm.route, arguments = ChoiceListForm.arguments) {
             ChoiceListFormScreen(onDone = { navHostController.popWithRefresh() })
+        }
+        composable(route = TemplateList.route, arguments = TemplateList.arguments) { entry ->
+            val viewModel: TemplateListViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            TemplateListScreen(
+                onTemplateClick = { navHostController.navigateDown(TemplateDetail.createRoute(it.id, it.name)) },
+                viewModel = viewModel
+            )
+        }
+        composable(route = TemplateDetail.route, arguments = TemplateDetail.arguments) {
+            TemplateDetailScreen(onDeleted = { navHostController.popWithRefresh() })
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
             ItemFormScreen(

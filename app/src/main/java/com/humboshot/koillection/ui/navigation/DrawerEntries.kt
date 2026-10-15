@@ -9,6 +9,7 @@ import com.humboshot.koillection.data.user.Feature
 import com.humboshot.koillection.destinations.ChoiceListList
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.TagList
+import com.humboshot.koillection.destinations.TemplateList
 
 /**
  * The side menu entries, in the order of the web sidebar. Each feature screen adds its entry to [others].
@@ -48,6 +49,14 @@ fun drawerEntries(
         }
         if (enabled(Feature.TEMPLATES)) {
             add(DrawerEntry(label = null))
+            add(
+                DrawerEntry(
+                    label = TemplateList.title,
+                    icon = { Icon(painterResource(R.drawable.ic_templates), contentDescription = null) },
+                    selected = isCurrent(TemplateList.ROUTE_PREFIX),
+                    onClick = { open(TemplateList.createRoute()) },
+                )
+            )
             add(
                 DrawerEntry(
                     label = ChoiceListList.title,

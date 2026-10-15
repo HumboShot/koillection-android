@@ -191,3 +191,34 @@ object ChoiceListForm : AppDestination {
     fun editRoute(id: String, name: String): String =
         "choice_list_form?$CHOICE_LIST_ID_ARG=$id&$TITLE_ARG=${Uri.encode(name)}"
 }
+
+object TemplateList : AppDestination {
+    const val ROUTE_PREFIX = "template"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "templates?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Templates"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "templates?$TITLE_ARG=${Uri.encode(title)}"
+}
+
+object TemplateDetail : AppDestination {
+    const val ID_ARG = "templateId"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "template/{$ID_ARG}?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Template"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(ID_ARG) { type = NavType.StringType },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(id: String, name: String): String = "template/$id?$TITLE_ARG=${Uri.encode(name)}"
+}
