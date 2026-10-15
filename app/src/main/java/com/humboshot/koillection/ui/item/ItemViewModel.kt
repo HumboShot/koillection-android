@@ -5,8 +5,11 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.humboshot.koillection.data.datum.Datum
 import com.humboshot.koillection.data.item.Item
+import com.humboshot.koillection.data.loan.Loan
+import com.humboshot.koillection.data.loan.todayUtcMillis
 import com.humboshot.koillection.data.repository.DatumRepository
 import com.humboshot.koillection.data.repository.ItemRepository
+import com.humboshot.koillection.data.repository.LoanRepository
 import com.humboshot.koillection.data.tag.Tag
 import com.humboshot.koillection.destinations.ItemDetail
 import kotlinx.coroutines.async
@@ -34,10 +37,11 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             val data = async { ItemRepository.getData(itemId) }
             val tags = async { ItemRepository.getTags(itemId) }
             val related = async { ItemRepository.getRelatedItems(itemId) }
+            val loans = async { LoanRepository.getItemLoans(itemId) }
 
             item.await()
                 .onSuccess { loadedItem ->
-                    // Tags, data and related items are secondary; show the item even if one of them fails.
+                    // Tags, data, related items and loans are secondary; show the item even if one of them fails.
                     _state.update {
                         it.copy(
                             isLoading = false,
@@ -45,6 +49,7 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                             data = data.await().getOrDefault(emptyList()),
                             tags = tags.await().getOrDefault(emptyList()),
                             relatedItems = related.await().getOrDefault(emptyList()),
+                            loans = loans.await().getOrDefault(emptyList()),
                         )
                     }
                 }
@@ -111,6 +116,56 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
+    fun openLendDialog() = _state.update { it.copy(lendDialog = LendDialogState(dateMillis = todayUtcMillis())) }
+
+    fun onLendDialogChange(dialog: LendDialogState) = _state.update { it.copy(lendDialog = dialog.copy(error = null)) }
+
+    fun closeLendDialog() = _state.update { it.copy(lendDialog = null) }
+
+    fun lend() {
+        val dialog = _state.value.lendDialog ?: return
+        if (dialog.isSaving) return
+        if (dialog.lentTo.isBlank()) {
+            _state.update { it.copy(lendDialog = dialog.copy(error = "Enter who you lend the item to")) }
+            return
+        }
+
+        viewModelScope.launch {
+            _state.update { it.copy(lendDialog = dialog.copy(isSaving = true, error = null)) }
+            LoanRepository.lend(itemId, dialog.lentTo.trim(), dialog.dateMillis)
+                .onSuccess {
+                    closeLendDialog()
+                    refresh()
+                }
+                .onFailure { throwable ->
+                    _state.update {
+                        it.copy(lendDialog = it.lendDialog?.copy(isSaving = false, error = throwable.message ?: "Failed to lend item"))
+                    }
+                }
+        }
+    }
+
+    fun markReturned(loan: Loan) = runLoanChange("Failed to mark the loan as returned") {
+        LoanRepository.markReturned(loan.id, todayUtcMillis()).map { }
+    }
+
+    fun deleteLoan(loan: Loan) = runLoanChange("Failed to delete the loan") { LoanRepository.deleteLoan(loan.id) }
+
+    private fun runLoanChange(errorText: String, change: suspend () -> Result<Unit>) {
+        if (_state.value.isChangingLoan) return
+        viewModelScope.launch {
+            _state.update { it.copy(isChangingLoan = true, error = null) }
+            change()
+                .onSuccess {
+                    _state.update { it.copy(isChangingLoan = false) }
+                    refresh()
+                }
+                .onFailure { throwable ->
+                    _state.update { it.copy(isChangingLoan = false, error = throwable.message ?: errorText) }
+                }
+        }
+    }
+
     fun delete() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
@@ -132,6 +187,17 @@ data class ItemViewState(
     val error: String? = null,
     val isDeleted: Boolean = false,
     val datumEditor: DatumEditorState? = null,
+    val loans: List<Loan> = emptyList(),
+    val lendDialog: LendDialogState? = null,
+    val isChangingLoan: Boolean = false,
+)
+
+/** The "Lend" dialog. [dateMillis] is midnight UTC of the chosen day, as the date picker gives it. */
+data class LendDialogState(
+    val lentTo: String = "",
+    val dateMillis: Long,
+    val isSaving: Boolean = false,
+    val error: String? = null,
 )
 
 /** The add or edit dialog for one datum. A null [target] means a new datum. */

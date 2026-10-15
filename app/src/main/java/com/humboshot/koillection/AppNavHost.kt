@@ -8,6 +8,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.item.Item
+import com.humboshot.koillection.data.user.Feature
 import com.humboshot.koillection.destinations.CollectionDetail
 import com.humboshot.koillection.destinations.CollectionForm
 import com.humboshot.koillection.destinations.ItemDetail
@@ -37,6 +38,7 @@ import com.humboshot.koillection.ui.tag.TagListViewModel
 fun AppNavHost(
     navHostController: NavHostController,
     appState: AppState,
+    features: Set<Feature>?,
     modifier: Modifier = Modifier
 ) {
     val openCollection: (KCollection) -> Unit = { collection ->
@@ -80,6 +82,7 @@ fun AppNavHost(
                 onItemClick = openItem,
                 onEdit = { item -> navHostController.navigateDown(ItemForm.editRoute(item.id)) },
                 onDeleted = { navHostController.popWithRefresh() },
+                showLoans = features == null || Feature.LOANS in features,
                 viewModel = viewModel
             )
         }

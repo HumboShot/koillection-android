@@ -131,7 +131,12 @@ fun KoillectionApp(
                 }
             ) { innerPadding ->
                 CompositionLocalProvider(LocalTopBarActions provides topBarActions) {
-                    AppNavHost(navHostController, appState, Modifier.padding(innerPadding).consumeWindowInsets(innerPadding))
+                    AppNavHost(
+                        navHostController,
+                        appState,
+                        user?.enabledFeatures(),
+                        Modifier.padding(innerPadding).consumeWindowInsets(innerPadding)
+                    )
                 }
             }
         }

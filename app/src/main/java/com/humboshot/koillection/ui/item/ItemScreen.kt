@@ -44,6 +44,7 @@ import androidx.compose.ui.window.DialogProperties
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.humboshot.koillection.data.item.Item
+import com.humboshot.koillection.data.loan.Loan
 import com.humboshot.koillection.ui.common.ErrorState
 import com.humboshot.koillection.ui.common.KoillectionImage
 import com.humboshot.koillection.ui.common.TopBarActions
@@ -54,11 +55,13 @@ fun ItemScreen(
     onItemClick: (Item) -> Unit,
     onEdit: (Item) -> Unit,
     onDeleted: () -> Unit,
+    showLoans: Boolean = true,
     viewModel: ItemViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var fullScreenImage by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var loanToDelete by remember { mutableStateOf<Loan?>(null) }
 
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) onDeleted()
@@ -149,6 +152,28 @@ fun ItemScreen(
                 }
             }
 
+            if (showLoans) {
+                item { LoansHeader(onLend = viewModel::openLendDialog) }
+                if (state.loans.isEmpty()) {
+                    item {
+                        Text(
+                            text = "This item was never lent.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                }
+                items(state.loans, key = { "loan-${it.id}" }) { loan ->
+                    ItemLoanRow(
+                        loan = loan,
+                        enabled = !state.isChangingLoan,
+                        onMarkReturned = { viewModel.markReturned(loan) },
+                        onDelete = { loanToDelete = loan }
+                    )
+                }
+            }
+
             if (state.relatedItems.isNotEmpty()) {
                 item {
                     Text(
@@ -204,6 +229,32 @@ fun ItemScreen(
             onSave = viewModel::saveDatum,
             onDelete = viewModel::deleteDatum,
             onDismiss = viewModel::closeDatumEditor
+        )
+    }
+
+    state.lendDialog?.let { dialog ->
+        LendDialog(
+            dialog = dialog,
+            onChange = viewModel::onLendDialogChange,
+            onConfirm = viewModel::lend,
+            onDismiss = viewModel::closeLendDialog
+        )
+    }
+
+    loanToDelete?.let { loan ->
+        AlertDialog(
+            onDismissRequest = { loanToDelete = null },
+            title = { Text("Delete loan?") },
+            text = { Text("This deletes the loan to ${loan.lentTo} from the history. You cannot undo this.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    loanToDelete = null
+                    viewModel.deleteLoan(loan)
+                }) { Text("Delete") }
+            },
+            dismissButton = {
+                TextButton(onClick = { loanToDelete = null }) { Text("Cancel") }
+            }
         )
     }
 
