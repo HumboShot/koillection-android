@@ -5,6 +5,8 @@ import com.humboshot.koillection.api.services.TagService
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.tag.Tag
 import com.humboshot.koillection.data.tag.TagCategory
+import com.humboshot.koillection.data.tag.TagWrite
+import okhttp3.MultipartBody
 
 object TagRepository {
     private val service: TagService
@@ -18,6 +20,14 @@ object TagRepository {
 
     suspend fun getTagItems(id: String, page: Int): Result<Page<Item>> =
         service.getTagItems(id, page).map { it.toPage() }
+
+    suspend fun createTag(tag: TagWrite): Result<Tag> = service.createTag(tag)
+
+    suspend fun updateTag(id: String, tag: TagWrite): Result<Tag> = service.updateTag(id, tag)
+
+    suspend fun deleteTag(id: String): Result<Unit> = service.deleteTag(id)
+
+    suspend fun uploadImage(id: String, file: MultipartBody.Part): Result<Tag> = service.uploadImage(id, file)
 
     suspend fun getCategories(): Result<List<TagCategory>> =
         getAllPages { page -> service.getCategories(page) }

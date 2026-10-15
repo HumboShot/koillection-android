@@ -64,6 +64,18 @@ class TagDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
     }
 
+    fun delete() {
+        if (_state.value.isLoading) return
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            TagRepository.deleteTag(tagId)
+                .onSuccess { _state.update { it.copy(isLoading = false, isDeleted = true) } }
+                .onFailure { throwable ->
+                    _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to delete tag") }
+                }
+        }
+    }
+
     fun loadMoreItems() {
         val current = _state.value
         if (!current.hasMoreItems || current.isLoading || itemsJob?.isActive == true) return
@@ -93,4 +105,5 @@ data class TagDetailViewState(
     val totalItems: Int? = null,
     val hasMoreItems: Boolean = false,
     val error: String? = null,
+    val isDeleted: Boolean = false,
 )

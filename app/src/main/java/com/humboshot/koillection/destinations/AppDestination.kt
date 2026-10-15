@@ -253,3 +253,21 @@ object TagDetail : AppDestination {
 
     fun createRoute(id: String, label: String): String = "tag/$id?$TITLE_ARG=${Uri.encode(label)}"
 }
+
+object TagForm : AppDestination {
+    const val TAG_ID_ARG = "tagId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String = "tag_form?$TAG_ID_ARG={$TAG_ID_ARG}&$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "New tag"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TAG_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "tag_form?$TITLE_ARG=${Uri.encode(title)}"
+
+    fun editRoute(tagId: String): String = "tag_form?$TAG_ID_ARG=$tagId&$TITLE_ARG=${Uri.encode("Edit tag")}"
+}

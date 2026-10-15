@@ -13,8 +13,10 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
@@ -38,6 +40,7 @@ import com.humboshot.koillection.ui.common.KoillectionImage
 @Composable
 fun TagListScreen(
     onTagClick: (Tag) -> Unit,
+    onAdd: () -> Unit,
     viewModel: TagListViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -76,6 +79,15 @@ fun TagListScreen(
             items(tags, key = { it.id }) { tag ->
                 TagRow(tag, state.categoryOf(tag), onClick = { onTagClick(tag) })
             }
+        }
+
+        FloatingActionButton(
+            onClick = onAdd,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add tag")
         }
     }
 }

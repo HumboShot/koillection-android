@@ -19,6 +19,7 @@ import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.destinations.Statistics
 import com.humboshot.koillection.destinations.TagDetail
+import com.humboshot.koillection.destinations.TagForm
 import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.TemplateDetail
 import com.humboshot.koillection.destinations.TemplateList
@@ -44,6 +45,7 @@ import com.humboshot.koillection.ui.statistics.StatisticsScreen
 import com.humboshot.koillection.ui.statistics.visibleStatistics
 import com.humboshot.koillection.ui.tag.TagDetailScreen
 import com.humboshot.koillection.ui.tag.TagDetailViewModel
+import com.humboshot.koillection.ui.tag.TagFormScreen
 import com.humboshot.koillection.ui.tag.TagListScreen
 import com.humboshot.koillection.ui.tag.TagListViewModel
 import com.humboshot.koillection.ui.template.TemplateDetailScreen
@@ -108,13 +110,25 @@ fun AppNavHost(
             RefreshOnResult(entry, viewModel::refresh)
             TagListScreen(
                 onTagClick = { navHostController.navigateDown(TagDetail.createRoute(it.id, it.label)) },
+                onAdd = { navHostController.navigateDown(TagForm.createRoute()) },
                 viewModel = viewModel
             )
         }
         composable(route = TagDetail.route, arguments = TagDetail.arguments) { entry ->
             val viewModel: TagDetailViewModel = viewModel()
             RefreshOnResult(entry, viewModel::refresh)
-            TagDetailScreen(onItemClick = openItem, viewModel = viewModel)
+            TagDetailScreen(
+                onItemClick = openItem,
+                onEdit = { navHostController.navigateDown(TagForm.editRoute(it.id)) },
+                onDeleted = { navHostController.popWithRefresh() },
+                viewModel = viewModel
+            )
+        }
+        composable(route = TagForm.route, arguments = TagForm.arguments) {
+            TagFormScreen(
+                onSaved = { navHostController.popWithRefresh() },
+                onImageChanged = { navHostController.markPreviousForRefresh() }
+            )
         }
         composable(route = LoanList.route, arguments = LoanList.arguments) { entry ->
             val viewModel: LoanListViewModel = viewModel()
