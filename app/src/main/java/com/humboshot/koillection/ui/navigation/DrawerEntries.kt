@@ -9,6 +9,7 @@ import com.humboshot.koillection.R
 import com.humboshot.koillection.data.user.Feature
 import com.humboshot.koillection.destinations.AlbumList
 import com.humboshot.koillection.destinations.ChoiceListList
+import com.humboshot.koillection.destinations.History
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.Statistics
 import com.humboshot.koillection.destinations.TagList
@@ -90,8 +91,20 @@ fun drawerEntries(
                 )
             )
         }
-        if (enabled(Feature.STATISTICS)) {
+        if (enabled(Feature.HISTORY) || enabled(Feature.STATISTICS)) {
             add(DrawerEntry(label = null))
+        }
+        if (enabled(Feature.HISTORY)) {
+            add(
+                DrawerEntry(
+                    label = History.title,
+                    icon = { Icon(painterResource(R.drawable.ic_history), contentDescription = null) },
+                    selected = isCurrent(History.ROUTE_PREFIX),
+                    onClick = { open(History.createRoute()) },
+                )
+            )
+        }
+        if (enabled(Feature.STATISTICS)) {
             add(
                 DrawerEntry(
                     label = Statistics.title,

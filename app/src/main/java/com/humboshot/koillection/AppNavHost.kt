@@ -16,6 +16,7 @@ import com.humboshot.koillection.destinations.ChoiceListForm
 import com.humboshot.koillection.destinations.ChoiceListList
 import com.humboshot.koillection.destinations.CollectionDetail
 import com.humboshot.koillection.destinations.CollectionForm
+import com.humboshot.koillection.destinations.History
 import com.humboshot.koillection.destinations.ItemDetail
 import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.LoanList
@@ -53,6 +54,7 @@ import com.humboshot.koillection.ui.collection.CollectionViewModel
 import com.humboshot.koillection.ui.common.RefreshOnResult
 import com.humboshot.koillection.ui.common.markPreviousForRefresh
 import com.humboshot.koillection.ui.common.popWithRefresh
+import com.humboshot.koillection.ui.history.HistoryScreen
 import com.humboshot.koillection.ui.item.ItemFormScreen
 import com.humboshot.koillection.ui.item.ItemScreen
 import com.humboshot.koillection.ui.item.ItemViewModel
@@ -213,6 +215,15 @@ fun AppNavHost(
                 onDeleted = { navHostController.popWithRefresh() },
                 onChanged = { navHostController.markPreviousForRefresh() }
             )
+        }
+        composable(route = History.route, arguments = History.arguments) {
+            HistoryScreen(onOpen = { log ->
+                val route = when (log.shortClass) {
+                    "Item" -> ItemDetail.createRoute(log.objectId, log.objectLabel)
+                    else -> CollectionDetail.createRoute(log.objectId, log.objectLabel)
+                }
+                navHostController.navigateDown(route)
+            })
         }
         composable(route = Statistics.route, arguments = Statistics.arguments) {
             StatisticsScreen(statistics = visibleStatistics(features))

@@ -477,3 +477,18 @@ object PhotoForm : AppDestination {
     fun editRoute(photoId: String): String =
         "album_photo_form?$PHOTO_ID_ARG=$photoId&$TITLE_ARG=${Uri.encode("Edit photo")}"
 }
+
+object History : AppDestination {
+    const val ROUTE_PREFIX = "history"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "history?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "History"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "history?$TITLE_ARG=${Uri.encode(title)}"
+}
