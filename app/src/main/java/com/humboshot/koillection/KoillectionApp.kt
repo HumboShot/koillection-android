@@ -37,6 +37,7 @@ import com.humboshot.koillection.destinations.breadcrumb
 import com.humboshot.koillection.destinations.rootRoutes
 import com.humboshot.koillection.theme.KoillectionTheme
 import com.humboshot.koillection.ui.common.LocalTopBarActions
+import com.humboshot.koillection.ui.common.ScreenshotMode
 import com.humboshot.koillection.ui.common.TopBarActionsState
 import com.humboshot.koillection.ui.common.clearImageCache
 import com.humboshot.koillection.ui.navigation.AppDrawer
@@ -75,7 +76,8 @@ fun KoillectionApp(
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
         val sessionViewModel: SessionViewModel = viewModel()
-        val user by sessionViewModel.user.collectAsStateWithLifecycle()
+        val sessionUser by sessionViewModel.user.collectAsStateWithLifecycle()
+        val user = ScreenshotMode.user(sessionUser)
 
         LaunchedEffect(Unit) { sessionViewModel.load() }
 
@@ -99,8 +101,8 @@ fun KoillectionApp(
                         currentRoute = backStackEntry?.destination?.route,
                         open = closeAndOpenRoot,
                     ),
-                    username = user?.username ?: AuthStore.username,
-                    serverHost = AuthStore.serverUrl?.toHttpUrlOrNull()?.host,
+                    username = user?.username ?: ScreenshotMode.username(AuthStore.username),
+                    serverHost = ScreenshotMode.host(AuthStore.serverUrl?.toHttpUrlOrNull()?.host),
                     onProfileClick = { closeAndOpenRoot(Profile.createRoute()) },
                 )
             }

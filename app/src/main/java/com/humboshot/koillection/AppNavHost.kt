@@ -59,6 +59,7 @@ import com.humboshot.koillection.ui.collection.CollectionFormScreen
 import com.humboshot.koillection.ui.collection.CollectionScreen
 import com.humboshot.koillection.ui.collection.CollectionViewModel
 import com.humboshot.koillection.ui.common.RefreshOnResult
+import com.humboshot.koillection.ui.common.ScreenshotMode
 import com.humboshot.koillection.ui.common.markPreviousForRefresh
 import com.humboshot.koillection.ui.common.popWithRefresh
 import com.humboshot.koillection.ui.history.HistoryScreen
@@ -234,7 +235,7 @@ fun AppNavHost(
         composable(route = Profile.route, arguments = Profile.arguments) {
             ProfileScreen(
                 user = user,
-                serverHost = AuthStore.serverUrl?.toHttpUrlOrNull()?.host,
+                serverHost = ScreenshotMode.host(AuthStore.serverUrl?.toHttpUrlOrNull()?.host),
                 onSignOut = appState::signOut
             )
         }

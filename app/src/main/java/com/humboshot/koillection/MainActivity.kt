@@ -12,12 +12,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.humboshot.koillection.theme.KoillectionTheme
+import com.humboshot.koillection.ui.common.ScreenshotMode
 
 // The fingerprint prompt needs a FragmentActivity.
 class MainActivity : FragmentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        ScreenshotMode.enableFrom(intent)
         setContent {
             KoillectionTheme {
                 KoillectionApp()

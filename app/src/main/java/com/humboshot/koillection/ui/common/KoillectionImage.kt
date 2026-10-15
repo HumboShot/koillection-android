@@ -28,6 +28,10 @@ fun KoillectionImage(
         Box(modifier.background(MaterialTheme.colorScheme.surfaceVariant))
         return
     }
+    if (ScreenshotMode.enabled) {
+        ScreenshotMode.ImagePlaceholder(path, modifier)
+        return
+    }
 
     AsyncImage(
         model = ImageRequest.Builder(LocalContext.current)

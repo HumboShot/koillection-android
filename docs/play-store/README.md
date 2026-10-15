@@ -67,7 +67,15 @@ For each new upload, raise `versionCode` in `app/build.gradle.kts` by 1 and upda
 - **App icon:** `play-icon-512.png` (512 × 512).
 - **Feature graphic:** `feature-graphic-1024x500.png` (1024 × 500).
 - `make_icons.py` makes these two files and the launcher PNGs again, for example after a color change.
-- **Phone screenshots:** at least 2. Take them on the emulator or your phone, for example of the collections, an item, the login screen and the side menu.
+- **Phone screenshots:** at least 2. `screenshots.py` takes 6 of them with your private details hidden:
+  1. Install a debug build on a device or emulator, and log in.
+  2. Run it from the repository root, with a collection and an item from your server:
+     ```bash
+     python docs/play-store/screenshots.py --device emulator-5554 --collection Movies --item "Wolf Children" --hide <your username> --hide <your server>
+     ```
+  3. The app starts in screenshot mode and shows sample account details and placeholder images. Any `--hide` text that still shows is blurred, and the script lists it.
+  4. The files are in `build/play-screenshots/`. Check each one before you upload it.
+  - Screenshot mode also replaces every image from the server with a colored placeholder, because covers of films, books or games belong to their publishers. Item names still show, so pick a collection whose names you are happy to show.
 
 ### Privacy policy
 

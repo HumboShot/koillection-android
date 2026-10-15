@@ -35,6 +35,7 @@ import com.humboshot.koillection.R
 import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.data.user.User
 import com.humboshot.koillection.ui.common.KoillectionImage
+import com.humboshot.koillection.ui.common.ScreenshotMode
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
@@ -65,7 +66,7 @@ fun ProfileScreen(
                 Icon(Icons.Default.AccountCircle, contentDescription = null, modifier = avatarModifier)
             }
             Column {
-                Text(user?.username ?: AuthStore.username.orEmpty(), style = MaterialTheme.typography.headlineSmall)
+                Text(user?.username ?: ScreenshotMode.username(AuthStore.username).orEmpty(), style = MaterialTheme.typography.headlineSmall)
                 user?.email?.let { Text(it, style = MaterialTheme.typography.bodyMedium) }
             }
         }
