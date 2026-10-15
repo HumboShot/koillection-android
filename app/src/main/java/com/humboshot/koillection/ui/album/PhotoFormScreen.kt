@@ -47,7 +47,7 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
-class PhotoFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
+class PhotoFormViewModel(private val savedStateHandle: SavedStateHandle) : ViewModel() {
     private val photoId: String? = savedStateHandle[PhotoForm.PHOTO_ID_ARG]
     private val albumId: String? = savedStateHandle[PhotoForm.ALBUM_ID_ARG]
     private var original: Photo? = null
@@ -138,14 +138,23 @@ class PhotoFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                 return@launch
             }
 
+            // Read the image before the photo exists, so an unreadable image does not leave a photo without one.
+            val part = withContext(Dispatchers.IO) {
+                runCatching { readImagePart(contentResolver, checkNotNull(current.pendingImage)) }
+            }.getOrElse {
+                _state.update { it.copy(isSaving = false, pendingImage = null, error = "Cannot read the image. Pick it again.") }
+                return@launch
+            }
             val created = AlbumRepository.createPhoto(current.fields.toCreate(checkNotNull(albumId))).getOrElse { throwable ->
                 _state.update { it.copy(isSaving = false, error = throwable.message ?: "Failed to save photo") }
                 return@launch
             }
-            upload(contentResolver, created.id, checkNotNull(current.pendingImage))
+            AlbumRepository.uploadPhotoImage(created.id, part)
                 .onSuccess { _state.update { it.copy(isSaving = false, isSaved = true) } }
                 .onFailure {
                     // The photo exists now, so the form becomes an edit form for it. The album below must show it.
+                    // The id also goes into the saved state, so the edit form comes back after process death.
+                    savedStateHandle[PhotoForm.PHOTO_ID_ARG] = created.id
                     showSaved(created)
                     _state.update {
                         it.copy(
@@ -211,6 +220,9 @@ fun PhotoFormScreen(
                 isUploading = state.isUploading,
                 onPick = { uri -> viewModel.uploadImage(contentResolver, uri) }
             )
+            if (state.imagePath == null && !state.isUploading) {
+                Text("This photo has no image yet. Pick one.", color = MaterialTheme.colorScheme.error)
+            }
         } else {
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp), verticalAlignment = Alignment.CenterVertically) {
                 OutlinedButton(onClick = {
