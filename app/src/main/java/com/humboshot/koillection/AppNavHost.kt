@@ -17,6 +17,8 @@ import com.humboshot.koillection.destinations.ChoiceListList
 import com.humboshot.koillection.destinations.CollectionDetail
 import com.humboshot.koillection.destinations.CollectionForm
 import com.humboshot.koillection.destinations.History
+import com.humboshot.koillection.destinations.InventoryDetail
+import com.humboshot.koillection.destinations.InventoryList
 import com.humboshot.koillection.destinations.ItemDetail
 import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.LoanList
@@ -55,6 +57,9 @@ import com.humboshot.koillection.ui.common.RefreshOnResult
 import com.humboshot.koillection.ui.common.markPreviousForRefresh
 import com.humboshot.koillection.ui.common.popWithRefresh
 import com.humboshot.koillection.ui.history.HistoryScreen
+import com.humboshot.koillection.ui.inventory.InventoryDetailScreen
+import com.humboshot.koillection.ui.inventory.InventoryListScreen
+import com.humboshot.koillection.ui.inventory.InventoryListViewModel
 import com.humboshot.koillection.ui.item.ItemFormScreen
 import com.humboshot.koillection.ui.item.ItemScreen
 import com.humboshot.koillection.ui.item.ItemViewModel
@@ -224,6 +229,17 @@ fun AppNavHost(
                 }
                 navHostController.navigateDown(route)
             })
+        }
+        composable(route = InventoryList.route, arguments = InventoryList.arguments) { entry ->
+            val viewModel: InventoryListViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            InventoryListScreen(
+                onInventoryClick = { navHostController.navigateDown(InventoryDetail.createRoute(it.id, it.name)) },
+                viewModel = viewModel
+            )
+        }
+        composable(route = InventoryDetail.route, arguments = InventoryDetail.arguments) {
+            InventoryDetailScreen(onDeleted = { navHostController.popWithRefresh() })
         }
         composable(route = Statistics.route, arguments = Statistics.arguments) {
             StatisticsScreen(statistics = visibleStatistics(features))

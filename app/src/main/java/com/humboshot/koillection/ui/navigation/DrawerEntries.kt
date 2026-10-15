@@ -2,6 +2,7 @@ package com.humboshot.koillection.ui.navigation
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Done
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
@@ -10,6 +11,7 @@ import com.humboshot.koillection.data.user.Feature
 import com.humboshot.koillection.destinations.AlbumList
 import com.humboshot.koillection.destinations.ChoiceListList
 import com.humboshot.koillection.destinations.History
+import com.humboshot.koillection.destinations.InventoryList
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.Statistics
 import com.humboshot.koillection.destinations.TagList
@@ -91,9 +93,8 @@ fun drawerEntries(
                 )
             )
         }
-        if (enabled(Feature.HISTORY) || enabled(Feature.STATISTICS)) {
-            add(DrawerEntry(label = null))
-        }
+        // Inventories have no feature switch, so this group always shows.
+        add(DrawerEntry(label = null))
         if (enabled(Feature.HISTORY)) {
             add(
                 DrawerEntry(
@@ -114,6 +115,14 @@ fun drawerEntries(
                 )
             )
         }
+        add(
+            DrawerEntry(
+                label = InventoryList.title,
+                icon = { Icon(Icons.Default.Done, contentDescription = null) },
+                selected = isCurrent(InventoryList.ROUTE_PREFIX),
+                onClick = { open(InventoryList.createRoute()) },
+            )
+        )
     }
 
     val collections = DrawerEntry(

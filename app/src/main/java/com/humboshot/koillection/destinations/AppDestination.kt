@@ -492,3 +492,35 @@ object History : AppDestination {
 
     fun createRoute(): String = "history?$TITLE_ARG=${Uri.encode(title)}"
 }
+
+object InventoryList : AppDestination {
+    /** Matches "inventories" and "inventory/". */
+    const val ROUTE_PREFIX = "inventor"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "inventories?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Inventories"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "inventories?$TITLE_ARG=${Uri.encode(title)}"
+}
+
+object InventoryDetail : AppDestination {
+    const val ID_ARG = "inventoryId"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "inventory/{$ID_ARG}?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Inventory"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(ID_ARG) { type = NavType.StringType },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(id: String, name: String): String = "inventory/$id?$TITLE_ARG=${Uri.encode(name)}"
+}
