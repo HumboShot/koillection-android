@@ -63,4 +63,30 @@ class ItemFormFieldsTest {
 
         assertEquals(ItemWrite(quantity = 2), fields.toPatch(original))
     }
+
+    @Test
+    fun toPatch_sendsFullTagListOnlyWhenTagsChanged() {
+        val fields = ItemFormFields.from(original, tagIds = listOf("t1", "t2"))
+
+        assertNull(fields.toPatch(original, originalTagIds = listOf("t2", "t1")))
+        assertEquals(
+            ItemWrite(tags = listOf("/api/tags/t1", "/api/tags/t2", "/api/tags/t3")),
+            fields.addTag("t3").toPatch(original, originalTagIds = listOf("t1", "t2"))
+        )
+        assertEquals(
+            ItemWrite(tags = emptyList()),
+            fields.removeTag("t1").removeTag("t2").toPatch(original, originalTagIds = listOf("t1", "t2"))
+        )
+    }
+
+    @Test
+    fun addTag_ignoresDuplicates() {
+        assertEquals(listOf("t1"), ItemFormFields(name = "Book").addTag("t1").addTag("t1").tagIds)
+    }
+
+    @Test
+    fun toCreate_sendsTagsOnlyWhenThereAreSome() {
+        assertNull(ItemFormFields(name = "Book").toCreate("c1").tags)
+        assertEquals(listOf("/api/tags/t1"), ItemFormFields(name = "Book", tagIds = listOf("t1")).toCreate("c1").tags)
+    }
 }

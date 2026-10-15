@@ -7,9 +7,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.repository.ItemRepository
+import com.humboshot.koillection.data.repository.TagRepository
 import com.humboshot.koillection.data.repository.readImagePart
+import com.humboshot.koillection.data.tag.Tag
 import com.humboshot.koillection.destinations.ItemForm
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -21,25 +24,38 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     private val itemId: String? = savedStateHandle[ItemForm.ITEM_ID_ARG]
     private val collectionId: String? = savedStateHandle[ItemForm.COLLECTION_ID_ARG]
     private var original: Item? = null
+    private var originalTagIds: List<String> = emptyList()
 
-    private val _state = MutableStateFlow(ItemFormViewState())
+    private val _state = MutableStateFlow(ItemFormViewState(isEditRoute = itemId != null))
     val state: StateFlow<ItemFormViewState> = _state.asStateFlow()
 
     init {
+        loadAllTags()
         if (itemId != null) load(itemId)
+    }
+
+    /** The tags to pick from. The form still works without them, so a failure only leaves the list empty. */
+    private fun loadAllTags() {
+        viewModelScope.launch {
+            TagRepository.getTags().onSuccess { tags -> _state.update { it.copy(allTags = tags) } }
+        }
     }
 
     private fun load(id: String) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
+            val itemTags = async { ItemRepository.getTags(id) }
             ItemRepository.getItem(id)
                 .onSuccess { item ->
                     original = item
+                    val tags = itemTags.await().getOrDefault(emptyList())
+                    originalTagIds = tags.map { it.id }
                     _state.update {
                         it.copy(
                             isLoading = false,
                             isEditing = true,
-                            fields = ItemFormFields.from(item),
+                            fields = ItemFormFields.from(item, originalTagIds),
+                            itemTags = tags,
                             imagePath = item.imageSmallThumbnail ?: item.image
                         )
                     }
@@ -58,6 +74,10 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun onVisibilityChange(visibility: String) =
         _state.update { it.copy(fields = it.fields.copy(visibility = visibility)) }
 
+    fun addTag(tag: Tag) = _state.update { it.copy(fields = it.fields.addTag(tag.id)) }
+
+    fun removeTag(tagId: String) = _state.update { it.copy(fields = it.fields.removeTag(tagId)) }
+
     fun uploadImage(contentResolver: ContentResolver, uri: Uri) {
         val target = original ?: return
         viewModelScope.launch {
@@ -75,7 +95,7 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     fun save() {
-        if (_state.value.isSaving) return
+        if (_state.value.isSaving || !_state.value.canSave) return
         val fields = _state.value.fields
         fields.validate()?.let { error ->
             _state.update { it.copy(error = error) }
@@ -83,7 +103,7 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
 
         val item = original
-        val patch = item?.let { fields.toPatch(it) }
+        val patch = item?.let { fields.toPatch(it, originalTagIds) }
         if (item != null && patch == null) {
             _state.update { it.copy(isSaved = true) }
             return
@@ -107,7 +127,11 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
 data class ItemFormViewState(
     val fields: ItemFormFields = ItemFormFields(),
+    val allTags: List<Tag> = emptyList(),
+    /** The tags the item had when the form loaded. They name the chips if [allTags] failed to load. */
+    val itemTags: List<Tag> = emptyList(),
     val isLoading: Boolean = false,
+    val isEditRoute: Boolean = false,
     val isEditing: Boolean = false,
     val imagePath: String? = null,
     val isUploading: Boolean = false,
@@ -115,4 +139,14 @@ data class ItemFormViewState(
     val isSaving: Boolean = false,
     val isSaved: Boolean = false,
     val error: String? = null,
-)
+) {
+    /** An edit form may only save after the item loaded. Otherwise Save would try to create an item. */
+    val canSave: Boolean get() = !isEditRoute || isEditing
+
+    /** The tags on the item, in the order the user added them. */
+    val selectedTags: List<Tag>
+        get() {
+            val known = (itemTags + allTags).associateBy { it.id }
+            return fields.tagIds.mapNotNull(known::get)
+        }
+}

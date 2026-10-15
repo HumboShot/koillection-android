@@ -12,5 +12,8 @@ data class ItemWrite(
     @Json(name = "collection")
     val collection: String? = null,
     @Json(name = "visibility")
-    val visibility: String? = null
+    val visibility: String? = null,
+    /** The full list of tag IRIs. An empty list removes every tag. */
+    @Json(name = "tags")
+    val tags: List<String>? = null,
 )

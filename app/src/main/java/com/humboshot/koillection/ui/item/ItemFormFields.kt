@@ -8,6 +8,8 @@ data class ItemFormFields(
     val name: String = "",
     val quantity: String = "1",
     val visibility: String = "public",
+    /** The ids of the tags on the item, in the order the user added them. */
+    val tagIds: List<String> = emptyList(),
 ) {
     fun validate(): String? = when {
         name.isBlank() -> "Name is required"
@@ -20,23 +22,33 @@ data class ItemFormFields(
         quantity = quantity.toInt(),
         collection = collectionId.toIri("collections"),
         visibility = visibility,
+        tags = tagIds.takeIf { it.isNotEmpty() }?.map { it.toIri("tags") },
     )
 
-    /** Gives only the fields that differ from [original], or null when nothing changed. */
-    fun toPatch(original: Item): ItemWrite? {
+    /**
+     * Gives only the fields that differ from [original], or null when nothing changed.
+     * Tags are sent as the full list, and only when the set of tags changed.
+     */
+    fun toPatch(original: Item, originalTagIds: List<String> = emptyList()): ItemWrite? {
         val patch = ItemWrite(
             name = name.trim().takeIf { it != original.name },
             quantity = quantity.toInt().takeIf { it != original.quantity },
             visibility = visibility.takeIf { it != original.visibility },
+            tags = tagIds.takeIf { it.toSet() != originalTagIds.toSet() }?.map { it.toIri("tags") },
         )
         return patch.takeIf { it != ItemWrite() }
     }
 
+    fun addTag(tagId: String): ItemFormFields = if (tagId in tagIds) this else copy(tagIds = tagIds + tagId)
+
+    fun removeTag(tagId: String): ItemFormFields = copy(tagIds = tagIds - tagId)
+
     companion object {
-        fun from(item: Item) = ItemFormFields(
+        fun from(item: Item, tagIds: List<String> = emptyList()) = ItemFormFields(
             name = item.name,
             quantity = item.quantity.toString(),
             visibility = item.visibility,
+            tagIds = tagIds,
         )
     }
 }

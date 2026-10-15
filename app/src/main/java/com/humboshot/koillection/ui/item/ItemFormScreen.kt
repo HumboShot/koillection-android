@@ -30,6 +30,7 @@ import com.humboshot.koillection.ui.common.VisibilityPicker
 fun ItemFormScreen(
     onSaved: () -> Unit,
     onImageChanged: () -> Unit,
+    showTags: Boolean = true,
     viewModel: ItemFormViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -73,6 +74,14 @@ fun ItemFormScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
+        if (showTags) {
+            ItemTagsField(
+                selected = state.selectedTags,
+                allTags = state.allTags,
+                onAdd = viewModel::addTag,
+                onRemove = { viewModel.removeTag(it.id) }
+            )
+        }
         Text("Visibility", style = MaterialTheme.typography.labelLarge)
         VisibilityPicker(
             selected = state.fields.visibility,
@@ -84,7 +93,7 @@ fun ItemFormScreen(
         }
         Button(
             onClick = viewModel::save,
-            enabled = !state.isSaving && !state.isLoading && !state.isUploading,
+            enabled = !state.isSaving && !state.isLoading && !state.isUploading && state.canSave,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(if (state.isSaving) "Saving…" else "Save")

@@ -45,6 +45,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.loan.Loan
+import com.humboshot.koillection.data.tag.Tag
 import com.humboshot.koillection.ui.common.ErrorState
 import com.humboshot.koillection.ui.common.KoillectionImage
 import com.humboshot.koillection.ui.common.TopBarActions
@@ -55,6 +56,7 @@ fun ItemScreen(
     onItemClick: (Item) -> Unit,
     onEdit: (Item) -> Unit,
     onDeleted: () -> Unit,
+    onTagClick: (Tag) -> Unit = {},
     showLoans: Boolean = true,
     onLoansChanged: () -> Unit = {},
     viewModel: ItemViewModel = viewModel()
@@ -131,7 +133,7 @@ fun ItemScreen(
                         modifier = Modifier.padding(horizontal = 16.dp)
                     ) {
                         state.tags.forEach { tag ->
-                            AssistChip(onClick = {}, label = { Text(tag.label) })
+                            AssistChip(onClick = { onTagClick(tag) }, label = { Text(tag.label) })
                         }
                     }
                 }

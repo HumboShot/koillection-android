@@ -105,6 +105,7 @@ fun AppNavHost(
                 onItemClick = openItem,
                 onEdit = { item -> navHostController.navigateDown(ItemForm.editRoute(item.id)) },
                 onDeleted = { navHostController.popWithRefresh() },
+                onTagClick = { navHostController.navigateDown(TagDetail.createRoute(it.id, it.label)) },
                 showLoans = features == null || Feature.LOANS in features,
                 onLoansChanged = { navHostController.markPreviousForRefresh() },
                 viewModel = viewModel
@@ -190,7 +191,8 @@ fun AppNavHost(
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
             ItemFormScreen(
                 onSaved = { navHostController.popWithRefresh() },
-                onImageChanged = { navHostController.markPreviousForRefresh() }
+                onImageChanged = { navHostController.markPreviousForRefresh() },
+                showTags = features == null || Feature.TAGS in features
             )
         }
         composable(route = CollectionForm.route, arguments = CollectionForm.arguments) {
