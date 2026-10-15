@@ -34,7 +34,7 @@ For each new upload, raise `versionCode` in `app/build.gradle.kts` by 1 and upda
 
 ### App details
 
-- **App name:** "Koillection" is the name of Benjamin Jonard's project. A name like "Koi for Koillection" makes clear that this is a separate app.
+- **App name:** Goshiki. "Koillection" is the name of Benjamin Jonard's project, so the descriptions say that Goshiki is an unofficial client.
 - **Category:** Productivity.
 - **Contact email:** required. It is shown on the store page.
 
@@ -44,7 +44,7 @@ For each new upload, raise `versionCode` in `app/build.gradle.kts` by 1 and upda
 
 ### Full description
 
-> An unofficial Android client for Koillection, the self-hosted collection manager.
+> Goshiki is an unofficial Android client for Koillection, the self-hosted collection manager.
 >
 > Connect to your own Koillection server and take your collections with you:
 >
@@ -60,7 +60,7 @@ For each new upload, raise `versionCode` in `app/build.gradle.kts` by 1 and upda
 > • Optional fingerprint or screen lock unlock
 > • The app connects only to your own server. No analytics, no ads, no tracking.
 >
-> You need your own Koillection server and an account on it. This app is not affiliated with the Koillection project.
+> You need your own Koillection server and an account on it. Goshiki is not affiliated with the Koillection project.
 
 ### Graphics
 

@@ -1,5 +1,5 @@
-# koillection-android
-An unofficial native Android app for [Koillection](https://github.com/benjaminjonard/koillection) servers. It is not affiliated with the Koillection project.
+# Goshiki
+Goshiki is an unofficial native Android app for [Koillection](https://github.com/benjaminjonard/koillection) servers. It is not affiliated with the Koillection project.
 
 ## Troubleshooting
 

@@ -29,6 +29,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.FragmentActivity
+import androidx.compose.ui.res.stringResource
+import com.humboshot.koillection.R
 import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.auth.UnlockResult
 import kotlinx.coroutines.Dispatchers
@@ -65,7 +67,7 @@ fun UnlockScreen(onSignOut: () -> Unit) {
     }
     val promptInfo = remember {
         BiometricPrompt.PromptInfo.Builder()
-            .setTitle("Unlock Koillection")
+            .setTitle("Unlock ${activity.getString(R.string.app_name)}")
             .setSubtitle("Confirm that it is you to use the saved login")
             .setAllowedAuthenticators(allowedAuthenticators())
             .build()
@@ -85,7 +87,7 @@ fun UnlockScreen(onSignOut: () -> Unit) {
             .fillMaxSize()
             .padding(32.dp)
     ) {
-        Text("Koillection is locked", style = MaterialTheme.typography.headlineSmall)
+        Text("${stringResource(R.string.app_name)} is locked", style = MaterialTheme.typography.headlineSmall)
         Text(
             text = "Use your fingerprint or screen lock to open the app.",
             textAlign = TextAlign.Center,

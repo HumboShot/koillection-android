@@ -1,6 +1,6 @@
 # Privacy policy
 
-This policy applies to the Android app in this repository, an unofficial client for [Koillection](https://github.com/benjaminjonard/koillection).
+This policy applies to Goshiki, the Android app in this repository. Goshiki is an unofficial client for [Koillection](https://github.com/benjaminjonard/koillection).
 
 ## Summary
 

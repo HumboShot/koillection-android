@@ -29,7 +29,9 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.ui.res.stringResource
 import com.humboshot.koillection.BuildConfig
+import com.humboshot.koillection.R
 import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.data.user.User
 import com.humboshot.koillection.ui.common.KoillectionImage
@@ -127,7 +129,7 @@ private fun AboutSection() {
         Text("About", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.primary)
         ProfileValue("App version", BuildConfig.VERSION_NAME)
         Text(
-            text = "An unofficial app for Koillection. It is not affiliated with the Koillection project.",
+            text = "${stringResource(R.string.app_name)} is an unofficial app for Koillection. It is not affiliated with the Koillection project.",
             style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
