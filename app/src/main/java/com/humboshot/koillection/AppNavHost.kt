@@ -57,6 +57,7 @@ import com.humboshot.koillection.ui.common.RefreshOnResult
 import com.humboshot.koillection.ui.common.markPreviousForRefresh
 import com.humboshot.koillection.ui.common.popWithRefresh
 import com.humboshot.koillection.ui.history.HistoryScreen
+import com.humboshot.koillection.ui.history.HistoryViewModel
 import com.humboshot.koillection.ui.inventory.InventoryDetailScreen
 import com.humboshot.koillection.ui.inventory.InventoryListScreen
 import com.humboshot.koillection.ui.inventory.InventoryListViewModel
@@ -221,14 +222,21 @@ fun AppNavHost(
                 onChanged = { navHostController.markPreviousForRefresh() }
             )
         }
-        composable(route = History.route, arguments = History.arguments) {
-            HistoryScreen(onOpen = { log ->
-                val route = when (log.shortClass) {
-                    "Item" -> ItemDetail.createRoute(log.objectId, log.objectLabel)
-                    else -> CollectionDetail.createRoute(log.objectId, log.objectLabel)
-                }
-                navHostController.navigateDown(route)
-            })
+        composable(route = History.route, arguments = History.arguments) { entry ->
+            val viewModel: HistoryViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            HistoryScreen(
+                onOpen = { log ->
+                    val route = when (log.shortClass) {
+                        "Item" -> ItemDetail.createRoute(log.objectId, log.objectLabel)
+                        "Collection" -> CollectionDetail.createRoute(log.objectId, log.objectLabel)
+                        "Inventory" -> InventoryDetail.createRoute(log.objectId, log.objectLabel)
+                        else -> null
+                    }
+                    route?.let { navHostController.navigateDown(it) }
+                },
+                viewModel = viewModel
+            )
         }
         composable(route = InventoryList.route, arguments = InventoryList.arguments) { entry ->
             val viewModel: InventoryListViewModel = viewModel()

@@ -116,4 +116,22 @@ class HydraPagingTest {
         assertTrue(result.isFailure)
         assertEquals("boom", result.exceptionOrNull()?.message)
     }
+
+    @Test
+    fun getAllPages_failsWhenThereAreMorePagesThanTheLimit() = runTest {
+        val result = getAllPages(maxPages = 2) { page ->
+            Result.success(HydraCollection(listOf("p$page"), null, HydraView("/next")))
+        }
+
+        assertTrue(result.isFailure)
+    }
+
+    @Test
+    fun getAllPages_succeedsWhenTheLastPageIsTheLimit() = runTest {
+        val result = getAllPages(maxPages = 2) { page ->
+            Result.success(HydraCollection(listOf("p$page"), null, HydraView(if (page < 2) "/next" else null)))
+        }
+
+        assertEquals(listOf("p1", "p2"), result.getOrThrow())
+    }
 }

@@ -53,7 +53,7 @@ class HistoryViewModel : ViewModel() {
     fun refresh() {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
-            getAllPages { page -> service.getLogs(page) }
+            getAllPages(maxPages = 500) { page -> service.getLogs(page) }
                 .onSuccess { logs -> _state.update { it.copy(isLoading = false, logs = logs) } }
                 .onFailure { throwable ->
                     _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to load history") }
@@ -74,8 +74,8 @@ data class HistoryViewState(
     val visibleLogs: List<Log> get() = filterLogs(logs, type)
 }
 
-/** Only items and collections that still exist have a screen in the app. */
-fun Log.canOpen(): Boolean = !objectDeleted && shortClass in setOf("Item", "Collection")
+/** Only items, collections and inventories that still exist have a screen in the app. */
+fun Log.canOpen(): Boolean = !objectDeleted && shortClass in setOf("Item", "Collection", "Inventory")
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

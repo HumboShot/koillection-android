@@ -13,19 +13,18 @@ fun <T> HydraCollection<T>.toPage(): Page<T> = Page(member, view?.next != null, 
 
 /**
  * Follows Hydra `view.next` links, starting at page 1, until the server reports no further page.
- * Fails as soon as any page fails.
+ * Fails as soon as any page fails, and when there are more than [maxPages] pages, so a cut list is never
+ * shown as complete.
  */
 suspend fun <T> getAllPages(
     maxPages: Int = 100,
     fetch: suspend (page: Int) -> Result<HydraCollection<T>>
 ): Result<List<T>> {
     val all = mutableListOf<T>()
-    var page = 1
-    while (page <= maxPages) {
+    for (page in 1..maxPages) {
         val result = fetch(page).getOrElse { return Result.failure(it) }
         all += result.member
-        if (result.view?.next == null) break
-        page++
+        if (result.view?.next == null) return Result.success(all)
     }
-    return Result.success(all)
+    return Result.failure(IllegalStateException("The list has more than $maxPages pages, so the app cannot show all of it."))
 }
