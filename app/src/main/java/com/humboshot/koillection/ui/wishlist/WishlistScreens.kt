@@ -12,12 +12,26 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -34,6 +48,7 @@ import com.humboshot.koillection.destinations.WishlistDetail
 import com.humboshot.koillection.ui.common.EmptyState
 import com.humboshot.koillection.ui.common.ErrorState
 import com.humboshot.koillection.ui.common.KoillectionImage
+import com.humboshot.koillection.ui.common.TopBarActions
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -71,6 +86,7 @@ data class WishlistListViewState(
 @Composable
 fun WishlistListScreen(
     onWishlistClick: (Wishlist) -> Unit,
+    onAdd: () -> Unit,
     viewModel: WishlistListViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -90,6 +106,15 @@ fun WishlistListScreen(
             items(state.wishlists, key = { it.id }) { wishlist ->
                 ImageRow(image = wishlist.image, title = wishlist.name, subtitle = null) { onWishlistClick(wishlist) }
             }
+        }
+
+        FloatingActionButton(
+            onClick = onAdd,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add wishlist")
         }
     }
 }
@@ -126,6 +151,18 @@ class WishlistDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
             }
         }
     }
+
+    fun delete() {
+        if (_state.value.isLoading) return
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            WishlistRepository.deleteWishlist(wishlistId)
+                .onSuccess { _state.update { it.copy(isLoading = false, isDeleted = true) } }
+                .onFailure { throwable ->
+                    _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to delete wishlist") }
+                }
+        }
+    }
 }
 
 data class WishlistDetailViewState(
@@ -134,6 +171,7 @@ data class WishlistDetailViewState(
     val children: List<Wishlist> = emptyList(),
     val wishes: List<Wish> = emptyList(),
     val error: String? = null,
+    val isDeleted: Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -141,9 +179,68 @@ data class WishlistDetailViewState(
 fun WishlistDetailScreen(
     onWishlistClick: (Wishlist) -> Unit,
     onWishClick: (Wish) -> Unit,
+    onAddSubWishlist: (parentId: String) -> Unit,
+    onEdit: (wishlistId: String) -> Unit,
+    onDeleted: () -> Unit,
     viewModel: WishlistDetailViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var menuOpen by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isDeleted) {
+        if (state.isDeleted) onDeleted()
+    }
+
+    state.wishlist?.let { wishlist ->
+        TopBarActions {
+            IconButton(onClick = { menuOpen = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "More actions")
+            }
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text("New sub-wishlist") },
+                    onClick = {
+                        menuOpen = false
+                        onAddSubWishlist(wishlist.id)
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Edit wishlist") },
+                    onClick = {
+                        menuOpen = false
+                        onEdit(wishlist.id)
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Delete wishlist") },
+                    onClick = {
+                        menuOpen = false
+                        confirmDelete = true
+                    }
+                )
+            }
+        }
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Delete wishlist?") },
+            text = {
+                Text(
+                    "This deletes \"${state.wishlist?.name}\" with all its sub-wishlists and wishes. You cannot undo this."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    viewModel.delete()
+                }) { Text("Delete") }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } }
+        )
+    }
 
     PullToRefreshBox(
         isRefreshing = state.isLoading,

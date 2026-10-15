@@ -337,3 +337,27 @@ object WishlistDetail : AppDestination {
 
     fun createRoute(id: String, name: String): String = "wishlist/$id?$TITLE_ARG=${Uri.encode(name)}"
 }
+
+object WishlistForm : AppDestination {
+    const val WISHLIST_ID_ARG = "wishlistId"
+    const val PARENT_ID_ARG = "parentId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String =
+        "wishlist_form?$WISHLIST_ID_ARG={$WISHLIST_ID_ARG}&$PARENT_ID_ARG={$PARENT_ID_ARG}&$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "New wishlist"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(WISHLIST_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(PARENT_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(parentId: String? = null): String =
+        if (parentId == null) "wishlist_form?$TITLE_ARG=${Uri.encode(title)}"
+        else "wishlist_form?$PARENT_ID_ARG=$parentId&$TITLE_ARG=${Uri.encode(title)}"
+
+    fun editRoute(wishlistId: String): String =
+        "wishlist_form?$WISHLIST_ID_ARG=$wishlistId&$TITLE_ARG=${Uri.encode("Edit wishlist")}"
+}

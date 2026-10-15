@@ -26,6 +26,7 @@ import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.TemplateDetail
 import com.humboshot.koillection.destinations.TemplateList
 import com.humboshot.koillection.destinations.WishlistDetail
+import com.humboshot.koillection.destinations.WishlistForm
 import com.humboshot.koillection.destinations.WishlistList
 import com.humboshot.koillection.destinations.withTrail
 import com.humboshot.koillection.extension.iriId
@@ -60,6 +61,7 @@ import com.humboshot.koillection.ui.template.TemplateListScreen
 import com.humboshot.koillection.ui.template.TemplateListViewModel
 import com.humboshot.koillection.ui.wishlist.WishlistDetailScreen
 import com.humboshot.koillection.ui.wishlist.WishlistDetailViewModel
+import com.humboshot.koillection.ui.wishlist.WishlistFormScreen
 import com.humboshot.koillection.ui.wishlist.WishlistListScreen
 import com.humboshot.koillection.ui.wishlist.WishlistListViewModel
 
@@ -205,16 +207,29 @@ fun AppNavHost(
             RefreshOnResult(entry, viewModel::refresh)
             WishlistListScreen(
                 onWishlistClick = { navHostController.navigateDown(WishlistDetail.createRoute(it.id, it.name)) },
+                onAdd = { navHostController.navigateDown(WishlistForm.createRoute()) },
                 viewModel = viewModel
             )
         }
         composable(route = WishlistDetail.route, arguments = WishlistDetail.arguments) { entry ->
             val viewModel: WishlistDetailViewModel = viewModel()
-            RefreshOnResult(entry, viewModel::refresh)
+            RefreshOnResult(entry) {
+                viewModel.refresh()
+                navHostController.markPreviousForRefresh()
+            }
             WishlistDetailScreen(
                 onWishlistClick = { navHostController.navigateDown(WishlistDetail.createRoute(it.id, it.name)) },
                 onWishClick = {},
+                onAddSubWishlist = { navHostController.navigateDown(WishlistForm.createRoute(it)) },
+                onEdit = { navHostController.navigateDown(WishlistForm.editRoute(it)) },
+                onDeleted = { navHostController.popWithRefresh() },
                 viewModel = viewModel
+            )
+        }
+        composable(route = WishlistForm.route, arguments = WishlistForm.arguments) {
+            WishlistFormScreen(
+                onSaved = { navHostController.popWithRefresh() },
+                onImageChanged = { navHostController.markPreviousForRefresh() }
             )
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
