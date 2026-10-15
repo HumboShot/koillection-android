@@ -179,6 +179,7 @@ data class WishlistDetailViewState(
 fun WishlistDetailScreen(
     onWishlistClick: (Wishlist) -> Unit,
     onWishClick: (Wish) -> Unit,
+    onAddWish: (wishlistId: String) -> Unit,
     onAddSubWishlist: (parentId: String) -> Unit,
     onEdit: (wishlistId: String) -> Unit,
     onDeleted: () -> Unit,
@@ -198,6 +199,13 @@ fun WishlistDetailScreen(
                 Icon(Icons.Default.MoreVert, contentDescription = "More actions")
             }
             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text("New wish") },
+                    onClick = {
+                        menuOpen = false
+                        onAddWish(wishlist.id)
+                    }
+                )
                 DropdownMenuItem(
                     text = { Text("New sub-wishlist") },
                     onClick = {

@@ -361,3 +361,40 @@ object WishlistForm : AppDestination {
     fun editRoute(wishlistId: String): String =
         "wishlist_form?$WISHLIST_ID_ARG=$wishlistId&$TITLE_ARG=${Uri.encode("Edit wishlist")}"
 }
+
+object WishDetail : AppDestination {
+    const val ID_ARG = "wishId"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "wish/{$ID_ARG}?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Wish"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(ID_ARG) { type = NavType.StringType },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(id: String, name: String): String = "wish/$id?$TITLE_ARG=${Uri.encode(name)}"
+}
+
+object WishForm : AppDestination {
+    const val WISH_ID_ARG = "wishId"
+    const val WISHLIST_ID_ARG = "wishlistId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String =
+        "wish_form?$WISH_ID_ARG={$WISH_ID_ARG}&$WISHLIST_ID_ARG={$WISHLIST_ID_ARG}&$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "New wish"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(WISH_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(WISHLIST_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(wishlistId: String): String = "wish_form?$WISHLIST_ID_ARG=$wishlistId&$TITLE_ARG=${Uri.encode(title)}"
+
+    fun editRoute(wishId: String): String = "wish_form?$WISH_ID_ARG=$wishId&$TITLE_ARG=${Uri.encode("Edit wish")}"
+}

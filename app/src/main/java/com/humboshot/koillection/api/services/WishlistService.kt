@@ -2,6 +2,7 @@ package com.humboshot.koillection.api.services
 
 import com.humboshot.koillection.data.hydra.HydraCollection
 import com.humboshot.koillection.data.wishlist.Wish
+import com.humboshot.koillection.data.wishlist.WishWrite
 import com.humboshot.koillection.data.wishlist.Wishlist
 import com.humboshot.koillection.data.wishlist.WishlistWrite
 import okhttp3.MultipartBody
@@ -42,4 +43,21 @@ interface WishlistService {
     @Multipart
     @POST("/api/wishlists/{id}/image")
     suspend fun uploadImage(@Path("id") id: String, @Part file: MultipartBody.Part): Result<Wishlist>
+
+    @GET("/api/wishes/{id}")
+    suspend fun getWish(@Path("id") id: String): Result<Wish>
+
+    @POST("/api/wishes")
+    suspend fun createWish(@Body wish: WishWrite): Result<Wish>
+
+    @Headers("Content-Type: application/merge-patch+json")
+    @PATCH("/api/wishes/{id}")
+    suspend fun updateWish(@Path("id") id: String, @Body wish: WishWrite): Result<Wish>
+
+    @DELETE("/api/wishes/{id}")
+    suspend fun deleteWish(@Path("id") id: String): Result<Unit>
+
+    @Multipart
+    @POST("/api/wishes/{id}/image")
+    suspend fun uploadWishImage(@Path("id") id: String, @Part file: MultipartBody.Part): Result<Wish>
 }

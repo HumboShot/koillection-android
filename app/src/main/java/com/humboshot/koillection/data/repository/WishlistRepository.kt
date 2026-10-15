@@ -3,6 +3,7 @@ package com.humboshot.koillection.data.repository
 import com.humboshot.koillection.api.core.ApiClient
 import com.humboshot.koillection.api.services.WishlistService
 import com.humboshot.koillection.data.wishlist.Wish
+import com.humboshot.koillection.data.wishlist.WishWrite
 import com.humboshot.koillection.data.wishlist.Wishlist
 import com.humboshot.koillection.data.wishlist.WishlistWrite
 import okhttp3.MultipartBody
@@ -33,4 +34,14 @@ object WishlistRepository {
     suspend fun deleteWishlist(id: String): Result<Unit> = service.deleteWishlist(id)
 
     suspend fun uploadImage(id: String, file: MultipartBody.Part): Result<Wishlist> = service.uploadImage(id, file)
+
+    suspend fun getWish(id: String): Result<Wish> = service.getWish(id)
+
+    suspend fun createWish(wish: WishWrite): Result<Wish> = service.createWish(wish)
+
+    suspend fun updateWish(id: String, wish: WishWrite): Result<Wish> = service.updateWish(id, wish)
+
+    suspend fun deleteWish(id: String): Result<Unit> = service.deleteWish(id)
+
+    suspend fun uploadWishImage(id: String, file: MultipartBody.Part): Result<Wish> = service.uploadWishImage(id, file)
 }
