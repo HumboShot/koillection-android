@@ -168,6 +168,10 @@ class TagCategoryFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel()
     fun save() {
         val current = _state.value
         if (current.isSaving || !current.canSave) return
+        if (!original?.color.isNullOrBlank() && current.fields.color.isBlank()) {
+            _state.update { it.copy(error = "A color cannot be removed. Enter a color.") }
+            return
+        }
         current.fields.validate()?.let { error ->
             _state.update { it.copy(error = error) }
             return
@@ -276,7 +280,7 @@ fun TagCategoryFormScreen(
                 singleLine = true,
                 modifier = Modifier.weight(1f)
             )
-            val preview = parseHexColor(fields.color.trim().removePrefix("#").let { "#$it" })
+            val preview = parseHexColor(fields.color)
             Box(
                 Modifier
                     .size(40.dp)

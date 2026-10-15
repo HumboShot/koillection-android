@@ -69,6 +69,7 @@ class TagFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     isLoading = false,
                     categories = categories.await().getOrDefault(emptyList()),
                     isEditing = original != null,
+                    hasCategory = original?.category != null,
                     fields = original?.let(TagFormFields::from) ?: it.fields,
                     imagePath = original?.let { tag -> tag.imageSmallThumbnail ?: tag.image },
                     error = loadError?.let { error -> error.message ?: "Failed to load tag" },
@@ -134,6 +135,8 @@ data class TagFormViewState(
     val isLoading: Boolean = false,
     val isEditRoute: Boolean = false,
     val isEditing: Boolean = false,
+    /** True when the loaded tag has a category. */
+    val hasCategory: Boolean = false,
     val imagePath: String? = null,
     val isUploading: Boolean = false,
     val imageChanged: Boolean = false,
@@ -195,7 +198,9 @@ fun TagFormScreen(
         )
         OptionDropdown(
             label = "Category",
-            options = listOf<Pair<String?, String>>(null to "No category") + state.categories.map { it.id to it.label },
+            // A merge-patch cannot send null, so a tag that has a category cannot lose it.
+            options = (if (state.hasCategory) emptyList() else listOf<Pair<String?, String>>(null to "No category")) +
+                state.categories.map { it.id to it.label },
             selected = fields.categoryId,
             onSelect = { viewModel.onFieldsChange(fields.copy(categoryId = it)) },
             modifier = Modifier.fillMaxWidth()

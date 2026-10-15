@@ -18,5 +18,6 @@ class HexColorTest {
         assertNull(parseHexColor("#fff"))
         assertNull(parseHexColor("teal"))
         assertNull(parseHexColor("#00968z"))
+        assertNull(parseHexColor("#-12345"))
     }
 }

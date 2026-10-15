@@ -123,7 +123,10 @@ fun AppNavHost(
         }
         composable(route = TagDetail.route, arguments = TagDetail.arguments) { entry ->
             val viewModel: TagDetailViewModel = viewModel()
-            RefreshOnResult(entry, viewModel::refresh)
+            RefreshOnResult(entry) {
+                viewModel.refresh()
+                navHostController.markPreviousForRefresh()
+            }
             TagDetailScreen(
                 onItemClick = openItem,
                 onEdit = { navHostController.navigateDown(TagForm.editRoute(it.id)) },
@@ -133,7 +136,10 @@ fun AppNavHost(
         }
         composable(route = TagCategoryList.route, arguments = TagCategoryList.arguments) { entry ->
             val viewModel: TagCategoryListViewModel = viewModel()
-            RefreshOnResult(entry, viewModel::refresh)
+            RefreshOnResult(entry) {
+                viewModel.refresh()
+                navHostController.markPreviousForRefresh()
+            }
             TagCategoryListScreen(
                 onCategoryClick = { navHostController.navigateDown(TagCategoryForm.editRoute(it.id, it.label)) },
                 onAdd = { navHostController.navigateDown(TagCategoryForm.createRoute()) },

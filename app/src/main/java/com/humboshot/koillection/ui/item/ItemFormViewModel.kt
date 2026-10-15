@@ -48,7 +48,8 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             ItemRepository.getItem(id)
                 .onSuccess { item ->
                     original = item
-                    val tags = itemTags.await().getOrDefault(emptyList())
+                    val tagsResult = itemTags.await()
+                    val tags = tagsResult.getOrDefault(emptyList())
                     originalTagIds = tags.map { it.id }
                     _state.update {
                         it.copy(
@@ -56,6 +57,8 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                             isEditing = true,
                             fields = ItemFormFields.from(item, originalTagIds),
                             itemTags = tags,
+                            // Without the current tags, a save would replace them. So the tag field stays off.
+                            tagsLoadFailed = tagsResult.isFailure,
                             imagePath = item.imageSmallThumbnail ?: item.image
                         )
                     }
@@ -103,7 +106,8 @@ class ItemFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         }
 
         val item = original
-        val patch = item?.let { fields.toPatch(it, originalTagIds) }
+        val tagBase = if (_state.value.tagsLoadFailed) fields.tagIds else originalTagIds
+        val patch = item?.let { fields.toPatch(it, tagBase) }
         if (item != null && patch == null) {
             _state.update { it.copy(isSaved = true) }
             return
@@ -130,6 +134,7 @@ data class ItemFormViewState(
     val allTags: List<Tag> = emptyList(),
     /** The tags the item had when the form loaded. They name the chips if [allTags] failed to load. */
     val itemTags: List<Tag> = emptyList(),
+    val tagsLoadFailed: Boolean = false,
     val isLoading: Boolean = false,
     val isEditRoute: Boolean = false,
     val isEditing: Boolean = false,

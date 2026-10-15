@@ -74,7 +74,13 @@ fun ItemFormScreen(
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
             modifier = Modifier.fillMaxWidth()
         )
-        if (showTags) {
+        if (showTags && state.tagsLoadFailed) {
+            Text(
+                text = "The tags could not load. Saving keeps the tags as they are.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error
+            )
+        } else if (showTags) {
             ItemTagsField(
                 selected = state.selectedTags,
                 allTags = state.allTags,
