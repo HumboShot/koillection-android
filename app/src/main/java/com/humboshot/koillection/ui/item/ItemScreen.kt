@@ -56,12 +56,17 @@ fun ItemScreen(
     onEdit: (Item) -> Unit,
     onDeleted: () -> Unit,
     showLoans: Boolean = true,
+    onLoansChanged: () -> Unit = {},
     viewModel: ItemViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var fullScreenImage by remember { mutableStateOf<String?>(null) }
     var confirmDelete by remember { mutableStateOf(false) }
     var loanToDelete by remember { mutableStateOf<Loan?>(null) }
+
+    LaunchedEffect(state.loanChangeCount) {
+        if (state.loanChangeCount > 0) onLoansChanged()
+    }
 
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) onDeleted()

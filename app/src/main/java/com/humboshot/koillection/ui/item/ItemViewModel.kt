@@ -134,7 +134,7 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             _state.update { it.copy(lendDialog = dialog.copy(isSaving = true, error = null)) }
             LoanRepository.lend(itemId, dialog.lentTo.trim(), dialog.dateMillis)
                 .onSuccess {
-                    closeLendDialog()
+                    _state.update { it.copy(lendDialog = null, loanChangeCount = it.loanChangeCount + 1) }
                     refresh()
                 }
                 .onFailure { throwable ->
@@ -157,7 +157,7 @@ class ItemViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             _state.update { it.copy(isChangingLoan = true, error = null) }
             change()
                 .onSuccess {
-                    _state.update { it.copy(isChangingLoan = false) }
+                    _state.update { it.copy(isChangingLoan = false, loanChangeCount = it.loanChangeCount + 1) }
                     refresh()
                 }
                 .onFailure { throwable ->
@@ -190,6 +190,8 @@ data class ItemViewState(
     val loans: List<Loan> = emptyList(),
     val lendDialog: LendDialogState? = null,
     val isChangingLoan: Boolean = false,
+    /** Goes up after each loan change, so the screen below (for example the loans list) can refresh. */
+    val loanChangeCount: Int = 0,
 )
 
 /** The "Lend" dialog. [dateMillis] is midnight UTC of the chosen day, as the date picker gives it. */

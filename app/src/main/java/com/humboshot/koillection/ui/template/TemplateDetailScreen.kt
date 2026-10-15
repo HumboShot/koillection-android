@@ -54,6 +54,7 @@ import com.humboshot.koillection.ui.common.VisibilityPicker
 @Composable
 fun TemplateDetailScreen(
     onDeleted: () -> Unit,
+    onChanged: () -> Unit,
     viewModel: TemplateDetailViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -61,6 +62,9 @@ fun TemplateDetailScreen(
 
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) onDeleted()
+    }
+    LaunchedEffect(state.changeCount) {
+        if (state.changeCount > 0) onChanged()
     }
 
     state.template?.let {
@@ -204,6 +208,23 @@ private fun FieldDialog(
     onDismiss: () -> Unit,
 ) {
     val fields = editor.fields
+    var confirmDelete by remember { mutableStateOf(false) }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Delete field?") },
+            text = { Text("This deletes the field \"${editor.target?.name}\" from the template. You cannot undo this.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    onDelete()
+                }) { Text("Delete") }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } }
+        )
+        return
+    }
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -246,7 +267,7 @@ private fun FieldDialog(
         dismissButton = {
             Row {
                 if (editor.target != null) {
-                    TextButton(onClick = onDelete, enabled = !editor.isSaving) {
+                    TextButton(onClick = { confirmDelete = true }, enabled = !editor.isSaving) {
                         Text("Delete", color = MaterialTheme.colorScheme.error)
                     }
                 }

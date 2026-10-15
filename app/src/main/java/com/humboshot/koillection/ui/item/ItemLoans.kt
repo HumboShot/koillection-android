@@ -13,6 +13,7 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.SelectableDates
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.unit.dp
 import com.humboshot.koillection.data.loan.Loan
 import com.humboshot.koillection.data.loan.loanDate
+import com.humboshot.koillection.data.loan.todayUtcMillis
 import com.humboshot.koillection.ui.common.formatApiDate
 import com.humboshot.koillection.ui.loan.LoanRow
 
@@ -108,7 +110,13 @@ fun LendDialog(
     )
 
     if (pickingDate) {
-        val pickerState = rememberDatePickerState(initialSelectedDateMillis = dialog.dateMillis)
+        val pickerState = rememberDatePickerState(
+            initialSelectedDateMillis = dialog.dateMillis,
+            selectableDates = object : SelectableDates {
+                private val today = todayUtcMillis()
+                override fun isSelectableDate(utcTimeMillis: Long) = utcTimeMillis <= today
+            }
+        )
         DatePickerDialog(
             onDismissRequest = { pickingDate = false },
             confirmButton = {

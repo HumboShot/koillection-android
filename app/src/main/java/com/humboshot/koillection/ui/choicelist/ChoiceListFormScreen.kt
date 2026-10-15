@@ -52,7 +52,7 @@ class ChoiceListFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
     private val choiceListId: String? = savedStateHandle[ChoiceListForm.CHOICE_LIST_ID_ARG]
     private var original: ChoiceList? = null
 
-    private val _state = MutableStateFlow(ChoiceListFormViewState())
+    private val _state = MutableStateFlow(ChoiceListFormViewState(isEditRoute = choiceListId != null))
     val state: StateFlow<ChoiceListFormViewState> = _state.asStateFlow()
 
     init {
@@ -78,7 +78,7 @@ class ChoiceListFormViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
     fun onFieldsChange(fields: ChoiceListFormFields) = _state.update { it.copy(fields = fields, error = null) }
 
     fun save() {
-        if (_state.value.isSaving) return
+        if (_state.value.isSaving || !_state.value.canSave) return
         val fields = _state.value.fields
         fields.validate()?.let { error ->
             _state.update { it.copy(error = error) }
@@ -125,11 +125,15 @@ data class ChoiceListFormViewState(
     val fields: ChoiceListFormFields = ChoiceListFormFields(),
     val isLoading: Boolean = false,
     val isEditing: Boolean = false,
+    /** True when the screen opened for an existing choice list. Save then waits until that list loads. */
+    val isEditRoute: Boolean = false,
     val isSaving: Boolean = false,
     /** True after a save or a delete. The screen then goes back. */
     val isDone: Boolean = false,
     val error: String? = null,
-)
+) {
+    val canSave: Boolean get() = !isEditRoute || isEditing
+}
 
 @Composable
 fun ChoiceListFormScreen(
@@ -197,7 +201,7 @@ fun ChoiceListFormScreen(
         state.error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
         Button(
             onClick = viewModel::save,
-            enabled = !state.isSaving && !state.isLoading,
+            enabled = !state.isSaving && !state.isLoading && state.canSave,
             modifier = Modifier.fillMaxWidth()
         ) {
             Text(if (state.isSaving) "Saving…" else "Save")

@@ -27,7 +27,10 @@ class TemplateDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
         refresh()
     }
 
-    fun refresh() {
+    fun refresh() = load(errorAfterLoad = null)
+
+    /** Reloads the template. [errorAfterLoad] shows after the reload, so a failed change stays visible. */
+    private fun load(errorAfterLoad: String?) {
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             val template = async { TemplateRepository.getTemplate(templateId) }
@@ -46,6 +49,7 @@ class TemplateDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
                     template = template.await().getOrThrow(),
                     fields = fields.await().getOrThrow(),
                     choiceLists = choiceLists.await().getOrDefault(emptyList()),
+                    error = errorAfterLoad,
                 )
             }
         }
@@ -127,7 +131,11 @@ class TemplateDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
         viewModelScope.launch {
             _state.update { it.copy(isBusy = true, renameError = null) }
             TemplateRepository.renameTemplate(templateId, name)
-                .onSuccess { template -> _state.update { it.copy(isBusy = false, isRenaming = false, template = template) } }
+                .onSuccess { template ->
+                    _state.update {
+                        it.copy(isBusy = false, isRenaming = false, template = template, changeCount = it.changeCount + 1)
+                    }
+                }
                 .onFailure { throwable ->
                     _state.update { it.copy(isBusy = false, renameError = throwable.message ?: "Failed to rename template") }
                 }
@@ -152,8 +160,8 @@ class TemplateDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() 
                     onSuccess()
                 }
                 .onFailure { throwable ->
-                    _state.update { it.copy(isBusy = false, error = throwable.message ?: errorText) }
-                    refresh()
+                    _state.update { it.copy(isBusy = false) }
+                    load(errorAfterLoad = throwable.message ?: errorText)
                 }
         }
     }
@@ -171,6 +179,8 @@ data class TemplateDetailViewState(
     val renameError: String? = null,
     val isDeleted: Boolean = false,
     val fieldEditor: FieldEditorState? = null,
+    /** Goes up after each change that the list screen below must show, such as a rename. */
+    val changeCount: Int = 0,
 )
 
 /** The add or edit dialog for one field. A null [target] means a new field. */

@@ -29,7 +29,7 @@ class LoanListViewModel : ViewModel() {
             LoanRepository.getLoans()
                 .onSuccess { loans ->
                     // A loan only links to its item, so load each item once for its name.
-                    val names = loans.map { it.item.iriId() }.distinct()
+                    val names = loans.mapNotNull { it.item?.iriId() }.distinct()
                         .map { id -> async { id to ItemRepository.getItem(id).getOrNull()?.name } }
                         .awaitAll()
                         .mapNotNull { (id, name) -> name?.let { id to it } }
@@ -54,7 +54,7 @@ data class LoanListViewState(
 ) {
     val visibleLoans: List<Loan> get() = filterLoans(loans, showAll)
 
-    fun itemName(loan: Loan): String = itemNames[loan.item.iriId()] ?: "Item"
+    fun itemName(loan: Loan): String = loan.item?.iriId()?.let(itemNames::get) ?: "Item"
 }
 
 /** "Lent" shows only loans that are not returned. "All" shows every loan. */

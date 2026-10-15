@@ -96,6 +96,7 @@ fun AppNavHost(
                 onEdit = { item -> navHostController.navigateDown(ItemForm.editRoute(item.id)) },
                 onDeleted = { navHostController.popWithRefresh() },
                 showLoans = features == null || Feature.LOANS in features,
+                onLoansChanged = { navHostController.markPreviousForRefresh() },
                 viewModel = viewModel
             )
         }
@@ -109,7 +110,7 @@ fun AppNavHost(
             RefreshOnResult(entry, viewModel::refresh)
             LoanListScreen(
                 onLoanClick = { loan, itemName ->
-                    navHostController.navigateDown(ItemDetail.createRoute(loan.item.iriId(), itemName))
+                    loan.item?.let { navHostController.navigateDown(ItemDetail.createRoute(it.iriId(), itemName)) }
                 },
                 viewModel = viewModel
             )
@@ -135,7 +136,10 @@ fun AppNavHost(
             )
         }
         composable(route = TemplateDetail.route, arguments = TemplateDetail.arguments) {
-            TemplateDetailScreen(onDeleted = { navHostController.popWithRefresh() })
+            TemplateDetailScreen(
+                onDeleted = { navHostController.popWithRefresh() },
+                onChanged = { navHostController.markPreviousForRefresh() }
+            )
         }
         composable(route = Statistics.route, arguments = Statistics.arguments) {
             StatisticsScreen(statistics = visibleStatistics(features))

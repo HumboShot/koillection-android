@@ -8,7 +8,7 @@ data class Loan(
     @Json(name = "id")
     val id: String,
     @Json(name = "item")
-    val item: String,
+    val item: String? = null,
     @Json(name = "lentTo")
     val lentTo: String,
     @Json(name = "lentAt")
