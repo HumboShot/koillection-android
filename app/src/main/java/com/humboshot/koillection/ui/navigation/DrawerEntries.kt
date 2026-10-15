@@ -8,6 +8,7 @@ import com.humboshot.koillection.R
 import com.humboshot.koillection.data.user.Feature
 import com.humboshot.koillection.destinations.ChoiceListList
 import com.humboshot.koillection.destinations.LoanList
+import com.humboshot.koillection.destinations.Statistics
 import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.TemplateList
 
@@ -63,6 +64,17 @@ fun drawerEntries(
                     icon = { Icon(Icons.AutoMirrored.Filled.List, contentDescription = null) },
                     selected = isCurrent(ChoiceListList.ROUTE_PREFIX),
                     onClick = { open(ChoiceListList.createRoute()) },
+                )
+            )
+        }
+        if (enabled(Feature.STATISTICS)) {
+            add(DrawerEntry(label = null))
+            add(
+                DrawerEntry(
+                    label = Statistics.title,
+                    icon = { Icon(painterResource(R.drawable.ic_statistics), contentDescription = null) },
+                    selected = isCurrent(Statistics.ROUTE_PREFIX),
+                    onClick = { open(Statistics.createRoute()) },
                 )
             )
         }

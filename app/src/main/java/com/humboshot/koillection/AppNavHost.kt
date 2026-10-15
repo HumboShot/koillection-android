@@ -17,6 +17,7 @@ import com.humboshot.koillection.destinations.ItemDetail
 import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.MainCollection
+import com.humboshot.koillection.destinations.Statistics
 import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.TemplateDetail
 import com.humboshot.koillection.destinations.TemplateList
@@ -38,6 +39,8 @@ import com.humboshot.koillection.ui.item.ItemScreen
 import com.humboshot.koillection.ui.item.ItemViewModel
 import com.humboshot.koillection.ui.loan.LoanListScreen
 import com.humboshot.koillection.ui.loan.LoanListViewModel
+import com.humboshot.koillection.ui.statistics.StatisticsScreen
+import com.humboshot.koillection.ui.statistics.visibleStatistics
 import com.humboshot.koillection.ui.tag.TagListScreen
 import com.humboshot.koillection.ui.tag.TagListViewModel
 import com.humboshot.koillection.ui.template.TemplateDetailScreen
@@ -133,6 +136,9 @@ fun AppNavHost(
         }
         composable(route = TemplateDetail.route, arguments = TemplateDetail.arguments) {
             TemplateDetailScreen(onDeleted = { navHostController.popWithRefresh() })
+        }
+        composable(route = Statistics.route, arguments = Statistics.arguments) {
+            StatisticsScreen(statistics = visibleStatistics(features))
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
             ItemFormScreen(

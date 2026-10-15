@@ -222,3 +222,18 @@ object TemplateDetail : AppDestination {
 
     fun createRoute(id: String, name: String): String = "template/$id?$TITLE_ARG=${Uri.encode(name)}"
 }
+
+object Statistics : AppDestination {
+    const val ROUTE_PREFIX = "statistics"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "statistics?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Statistics"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "statistics?$TITLE_ARG=${Uri.encode(title)}"
+}
