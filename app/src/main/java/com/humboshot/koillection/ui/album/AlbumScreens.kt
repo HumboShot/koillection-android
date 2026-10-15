@@ -21,12 +21,26 @@ import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.MoreVert
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.FloatingActionButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.pulltorefresh.PullToRefreshBox
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -47,6 +61,7 @@ import com.humboshot.koillection.destinations.AlbumDetail
 import com.humboshot.koillection.ui.common.EmptyState
 import com.humboshot.koillection.ui.common.ErrorState
 import com.humboshot.koillection.ui.common.KoillectionImage
+import com.humboshot.koillection.ui.common.TopBarActions
 import com.humboshot.koillection.ui.common.formatApiDate
 import kotlinx.coroutines.async
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -85,6 +100,7 @@ data class AlbumListViewState(
 @Composable
 fun AlbumListScreen(
     onAlbumClick: (Album) -> Unit,
+    onAdd: () -> Unit,
     viewModel: AlbumListViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -104,6 +120,15 @@ fun AlbumListScreen(
             items(state.albums, key = { it.id }) { album ->
                 AlbumRow(album, onClick = { onAlbumClick(album) })
             }
+        }
+
+        FloatingActionButton(
+            onClick = onAdd,
+            modifier = Modifier
+                .align(Alignment.BottomEnd)
+                .padding(16.dp)
+        ) {
+            Icon(Icons.Default.Add, contentDescription = "Add album")
         }
     }
 }
@@ -142,6 +167,18 @@ class AlbumDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     }
 
     fun openPhoto(photo: Photo?) = _state.update { it.copy(openPhoto = photo) }
+
+    fun delete() {
+        if (_state.value.isLoading) return
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null) }
+            AlbumRepository.deleteAlbum(albumId)
+                .onSuccess { _state.update { it.copy(isLoading = false, isDeleted = true) } }
+                .onFailure { throwable ->
+                    _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to delete album") }
+                }
+        }
+    }
 }
 
 data class AlbumDetailViewState(
@@ -152,15 +189,71 @@ data class AlbumDetailViewState(
     val error: String? = null,
     /** The photo in the full-screen view, or null. */
     val openPhoto: Photo? = null,
+    val isDeleted: Boolean = false,
 )
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AlbumDetailScreen(
     onAlbumClick: (Album) -> Unit,
+    onAddSubAlbum: (parentId: String) -> Unit,
+    onEdit: (albumId: String) -> Unit,
+    onDeleted: () -> Unit,
     viewModel: AlbumDetailViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    var menuOpen by remember { mutableStateOf(false) }
+    var confirmDelete by remember { mutableStateOf(false) }
+
+    LaunchedEffect(state.isDeleted) {
+        if (state.isDeleted) onDeleted()
+    }
+
+    state.album?.let { album ->
+        TopBarActions {
+            IconButton(onClick = { menuOpen = true }) {
+                Icon(Icons.Default.MoreVert, contentDescription = "More actions")
+            }
+            DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text("New sub-album") },
+                    onClick = {
+                        menuOpen = false
+                        onAddSubAlbum(album.id)
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Edit album") },
+                    onClick = {
+                        menuOpen = false
+                        onEdit(album.id)
+                    }
+                )
+                DropdownMenuItem(
+                    text = { Text("Delete album") },
+                    onClick = {
+                        menuOpen = false
+                        confirmDelete = true
+                    }
+                )
+            }
+        }
+    }
+
+    if (confirmDelete) {
+        AlertDialog(
+            onDismissRequest = { confirmDelete = false },
+            title = { Text("Delete album?") },
+            text = { Text("This deletes \"${state.album?.title}\" with all its sub-albums and photos. You cannot undo this.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    confirmDelete = false
+                    viewModel.delete()
+                }) { Text("Delete") }
+            },
+            dismissButton = { TextButton(onClick = { confirmDelete = false }) { Text("Cancel") } }
+        )
+    }
 
     PullToRefreshBox(
         isRefreshing = state.isLoading,

@@ -430,3 +430,27 @@ object AlbumDetail : AppDestination {
 
     fun createRoute(id: String, title: String): String = "album/$id?$TITLE_ARG=${Uri.encode(title)}"
 }
+
+object AlbumForm : AppDestination {
+    const val ALBUM_ID_ARG = "albumId"
+    const val PARENT_ID_ARG = "parentId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String =
+        "album_form?$ALBUM_ID_ARG={$ALBUM_ID_ARG}&$PARENT_ID_ARG={$PARENT_ID_ARG}&$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "New album"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(ALBUM_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(PARENT_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(parentId: String? = null): String =
+        if (parentId == null) "album_form?$TITLE_ARG=${Uri.encode(title)}"
+        else "album_form?$PARENT_ID_ARG=$parentId&$TITLE_ARG=${Uri.encode(title)}"
+
+    fun editRoute(albumId: String): String =
+        "album_form?$ALBUM_ID_ARG=$albumId&$TITLE_ARG=${Uri.encode("Edit album")}"
+}

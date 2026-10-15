@@ -3,7 +3,9 @@ package com.humboshot.koillection.data.repository
 import com.humboshot.koillection.api.core.ApiClient
 import com.humboshot.koillection.api.services.AlbumService
 import com.humboshot.koillection.data.album.Album
+import com.humboshot.koillection.data.album.AlbumWrite
 import com.humboshot.koillection.data.album.Photo
+import okhttp3.MultipartBody
 
 object AlbumRepository {
     private val service: AlbumService
@@ -24,6 +26,14 @@ object AlbumRepository {
     suspend fun getPhotos(id: String): Result<List<Photo>> =
         getAllPages { page -> service.getPhotos(id, page) }
             .map { photos -> sortPhotos(photos) }
+
+    suspend fun createAlbum(album: AlbumWrite): Result<Album> = service.createAlbum(album)
+
+    suspend fun updateAlbum(id: String, album: AlbumWrite): Result<Album> = service.updateAlbum(id, album)
+
+    suspend fun deleteAlbum(id: String): Result<Unit> = service.deleteAlbum(id)
+
+    suspend fun uploadImage(id: String, file: MultipartBody.Part): Result<Album> = service.uploadImage(id, file)
 }
 
 fun sortPhotos(photos: List<Photo>): List<Photo> =
