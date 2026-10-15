@@ -9,6 +9,8 @@ import androidx.navigation.compose.composable
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.user.Feature
+import com.humboshot.koillection.destinations.ChoiceListForm
+import com.humboshot.koillection.destinations.ChoiceListList
 import com.humboshot.koillection.destinations.CollectionDetail
 import com.humboshot.koillection.destinations.CollectionForm
 import com.humboshot.koillection.destinations.ItemDetail
@@ -18,6 +20,9 @@ import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.withTrail
 import com.humboshot.koillection.extension.iriId
+import com.humboshot.koillection.ui.choicelist.ChoiceListFormScreen
+import com.humboshot.koillection.ui.choicelist.ChoiceListListScreen
+import com.humboshot.koillection.ui.choicelist.ChoiceListListViewModel
 import com.humboshot.koillection.ui.collection.CollectionDetailScreen
 import com.humboshot.koillection.ui.collection.CollectionDetailViewModel
 import com.humboshot.koillection.ui.collection.CollectionFormScreen
@@ -100,6 +105,18 @@ fun AppNavHost(
                 },
                 viewModel = viewModel
             )
+        }
+        composable(route = ChoiceListList.route, arguments = ChoiceListList.arguments) { entry ->
+            val viewModel: ChoiceListListViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            ChoiceListListScreen(
+                onChoiceListClick = { navHostController.navigateDown(ChoiceListForm.editRoute(it.id, it.name)) },
+                onAdd = { navHostController.navigateDown(ChoiceListForm.createRoute()) },
+                viewModel = viewModel
+            )
+        }
+        composable(route = ChoiceListForm.route, arguments = ChoiceListForm.arguments) {
+            ChoiceListFormScreen(onDone = { navHostController.popWithRefresh() })
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {
             ItemFormScreen(

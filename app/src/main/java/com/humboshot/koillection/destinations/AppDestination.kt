@@ -156,3 +156,38 @@ object LoanList : AppDestination {
 
     fun createRoute(): String = "loans?$TITLE_ARG=${Uri.encode(title)}"
 }
+
+object ChoiceListList : AppDestination {
+    const val ROUTE_PREFIX = "choice_list"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "choice_lists?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Choice lists"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "choice_lists?$TITLE_ARG=${Uri.encode(title)}"
+}
+
+object ChoiceListForm : AppDestination {
+    const val CHOICE_LIST_ID_ARG = "choiceListId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String =
+        "choice_list_form?$CHOICE_LIST_ID_ARG={$CHOICE_LIST_ID_ARG}&$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "New choice list"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(CHOICE_LIST_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "choice_list_form?$TITLE_ARG=${Uri.encode(title)}"
+
+    fun editRoute(id: String, name: String): String =
+        "choice_list_form?$CHOICE_LIST_ID_ARG=$id&$TITLE_ARG=${Uri.encode(name)}"
+}
