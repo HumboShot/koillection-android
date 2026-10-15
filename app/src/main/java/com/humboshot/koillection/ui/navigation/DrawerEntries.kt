@@ -4,6 +4,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import com.humboshot.koillection.R
 import com.humboshot.koillection.data.user.Feature
+import com.humboshot.koillection.destinations.TagList
 
 /**
  * The side menu entries, in the order of the web sidebar. Each feature screen adds its entry to [others].
@@ -12,13 +13,26 @@ import com.humboshot.koillection.data.user.Feature
  * - [open] goes back to the Collections root and then opens the given route. A null route opens Collections.
  * - An entry is selected when the current route starts with one of its route prefixes.
  */
-@Suppress("UNUSED_PARAMETER")
 fun drawerEntries(
     features: Set<Feature>?,
     currentRoute: String?,
     open: (route: String?) -> Unit,
 ): List<DrawerEntry> {
-    val others = listOf<DrawerEntry>()
+    fun enabled(feature: Feature) = features == null || feature in features
+    fun isCurrent(prefix: String) = currentRoute?.startsWith(prefix) == true
+
+    val others = buildList {
+        if (enabled(Feature.TAGS)) {
+            add(
+                DrawerEntry(
+                    label = TagList.title,
+                    icon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
+                    selected = isCurrent(TagList.ROUTE_PREFIX),
+                    onClick = { open(TagList.createRoute()) },
+                )
+            )
+        }
+    }
 
     val collections = DrawerEntry(
         label = "Collections",
