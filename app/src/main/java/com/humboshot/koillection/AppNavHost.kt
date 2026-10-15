@@ -18,6 +18,8 @@ import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.destinations.Statistics
+import com.humboshot.koillection.destinations.TagCategoryForm
+import com.humboshot.koillection.destinations.TagCategoryList
 import com.humboshot.koillection.destinations.TagDetail
 import com.humboshot.koillection.destinations.TagForm
 import com.humboshot.koillection.destinations.TagList
@@ -43,6 +45,9 @@ import com.humboshot.koillection.ui.loan.LoanListScreen
 import com.humboshot.koillection.ui.loan.LoanListViewModel
 import com.humboshot.koillection.ui.statistics.StatisticsScreen
 import com.humboshot.koillection.ui.statistics.visibleStatistics
+import com.humboshot.koillection.ui.tag.TagCategoryFormScreen
+import com.humboshot.koillection.ui.tag.TagCategoryListScreen
+import com.humboshot.koillection.ui.tag.TagCategoryListViewModel
 import com.humboshot.koillection.ui.tag.TagDetailScreen
 import com.humboshot.koillection.ui.tag.TagDetailViewModel
 import com.humboshot.koillection.ui.tag.TagFormScreen
@@ -111,6 +116,7 @@ fun AppNavHost(
             TagListScreen(
                 onTagClick = { navHostController.navigateDown(TagDetail.createRoute(it.id, it.label)) },
                 onAdd = { navHostController.navigateDown(TagForm.createRoute()) },
+                onCategories = { navHostController.navigateDown(TagCategoryList.createRoute()) },
                 viewModel = viewModel
             )
         }
@@ -123,6 +129,18 @@ fun AppNavHost(
                 onDeleted = { navHostController.popWithRefresh() },
                 viewModel = viewModel
             )
+        }
+        composable(route = TagCategoryList.route, arguments = TagCategoryList.arguments) { entry ->
+            val viewModel: TagCategoryListViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            TagCategoryListScreen(
+                onCategoryClick = { navHostController.navigateDown(TagCategoryForm.editRoute(it.id, it.label)) },
+                onAdd = { navHostController.navigateDown(TagCategoryForm.createRoute()) },
+                viewModel = viewModel
+            )
+        }
+        composable(route = TagCategoryForm.route, arguments = TagCategoryForm.arguments) {
+            TagCategoryFormScreen(onDone = { navHostController.popWithRefresh() })
         }
         composable(route = TagForm.route, arguments = TagForm.arguments) {
             TagFormScreen(

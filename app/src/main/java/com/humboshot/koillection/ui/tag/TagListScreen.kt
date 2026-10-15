@@ -13,11 +13,13 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
@@ -35,15 +37,23 @@ import com.humboshot.koillection.data.tag.TagCategory
 import com.humboshot.koillection.ui.common.EmptyState
 import com.humboshot.koillection.ui.common.ErrorState
 import com.humboshot.koillection.ui.common.KoillectionImage
+import com.humboshot.koillection.ui.common.TopBarActions
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TagListScreen(
     onTagClick: (Tag) -> Unit,
     onAdd: () -> Unit,
+    onCategories: () -> Unit,
     viewModel: TagListViewModel = viewModel()
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+
+    TopBarActions {
+        IconButton(onClick = onCategories) {
+            Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Tag categories")
+        }
+    }
 
     PullToRefreshBox(
         isRefreshing = state.isLoading,
@@ -111,13 +121,7 @@ private fun TagRow(tag: Tag, category: TagCategory?, onClick: () -> Unit) {
         )
         Column {
             Text(tag.label, style = MaterialTheme.typography.titleMedium)
-            category?.let {
-                Text(
-                    text = it.label,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
+            category?.let { CategoryLabel(it) }
         }
     }
 }

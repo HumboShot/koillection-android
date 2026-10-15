@@ -5,6 +5,7 @@ import com.humboshot.koillection.api.services.TagService
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.tag.Tag
 import com.humboshot.koillection.data.tag.TagCategory
+import com.humboshot.koillection.data.tag.TagCategoryWrite
 import com.humboshot.koillection.data.tag.TagWrite
 import okhttp3.MultipartBody
 
@@ -34,4 +35,11 @@ object TagRepository {
             .map { categories -> categories.sortedBy { it.label.lowercase() } }
 
     suspend fun getCategory(id: String): Result<TagCategory> = service.getCategory(id)
+
+    suspend fun createCategory(category: TagCategoryWrite): Result<TagCategory> = service.createCategory(category)
+
+    suspend fun updateCategory(id: String, category: TagCategoryWrite): Result<TagCategory> =
+        service.updateCategory(id, category)
+
+    suspend fun deleteCategory(id: String): Result<Unit> = service.deleteCategory(id)
 }

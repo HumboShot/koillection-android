@@ -14,3 +14,13 @@ data class TagCategory(
     @Json(name = "color")
     val color: String? = null,
 )
+
+@JsonClass(generateAdapter = true)
+data class TagCategoryWrite(
+    @Json(name = "label")
+    val label: String? = null,
+    @Json(name = "description")
+    val description: String? = null,
+    @Json(name = "color")
+    val color: String? = null,
+)

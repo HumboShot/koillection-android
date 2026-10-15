@@ -271,3 +271,37 @@ object TagForm : AppDestination {
 
     fun editRoute(tagId: String): String = "tag_form?$TAG_ID_ARG=$tagId&$TITLE_ARG=${Uri.encode("Edit tag")}"
 }
+
+/** The route starts with "tag", so the side menu still marks Tags as current. */
+object TagCategoryList : AppDestination {
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "tag_categories?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Tag categories"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "tag_categories?$TITLE_ARG=${Uri.encode(title)}"
+}
+
+object TagCategoryForm : AppDestination {
+    const val CATEGORY_ID_ARG = "categoryId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String =
+        "tag_category_form?$CATEGORY_ID_ARG={$CATEGORY_ID_ARG}&$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "New tag category"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(CATEGORY_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "tag_category_form?$TITLE_ARG=${Uri.encode(title)}"
+
+    fun editRoute(id: String, label: String): String =
+        "tag_category_form?$CATEGORY_ID_ARG=$id&$TITLE_ARG=${Uri.encode(label)}"
+}

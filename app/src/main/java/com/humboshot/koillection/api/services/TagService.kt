@@ -4,6 +4,7 @@ import com.humboshot.koillection.data.hydra.HydraCollection
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.tag.Tag
 import com.humboshot.koillection.data.tag.TagCategory
+import com.humboshot.koillection.data.tag.TagCategoryWrite
 import com.humboshot.koillection.data.tag.TagWrite
 import okhttp3.MultipartBody
 import retrofit2.http.Body
@@ -46,4 +47,14 @@ interface TagService {
 
     @GET("/api/tag_categories/{id}")
     suspend fun getCategory(@Path("id") id: String): Result<TagCategory>
+
+    @POST("/api/tag_categories")
+    suspend fun createCategory(@Body category: TagCategoryWrite): Result<TagCategory>
+
+    @Headers("Content-Type: application/merge-patch+json")
+    @PATCH("/api/tag_categories/{id}")
+    suspend fun updateCategory(@Path("id") id: String, @Body category: TagCategoryWrite): Result<TagCategory>
+
+    @DELETE("/api/tag_categories/{id}")
+    suspend fun deleteCategory(@Path("id") id: String): Result<Unit>
 }
