@@ -131,7 +131,10 @@ fun AppNavHost(
         }
         composable(route = ItemDetail.route, arguments = ItemDetail.arguments) { entry ->
             val viewModel: ItemViewModel = viewModel()
-            RefreshOnResult(entry, viewModel::refresh)
+            RefreshOnResult(entry) {
+                viewModel.refresh()
+                navHostController.markPreviousForRefresh()
+            }
             ItemScreen(
                 onItemClick = openItem,
                 onEdit = { item -> navHostController.navigateDown(ItemForm.editRoute(item.id)) },

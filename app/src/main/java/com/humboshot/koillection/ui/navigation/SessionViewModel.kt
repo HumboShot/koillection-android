@@ -15,6 +15,7 @@ class SessionViewModel : ViewModel() {
     val user: StateFlow<User?> = _user.asStateFlow()
 
     fun load() {
+        _user.value = null
         viewModelScope.launch {
             _user.value = UserRepository.getCurrentUser().getOrNull()
         }
