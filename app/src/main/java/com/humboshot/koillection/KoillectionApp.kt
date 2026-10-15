@@ -24,17 +24,22 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.destinations.MainCollection
+import com.humboshot.koillection.data.user.enabledFeatures
 import com.humboshot.koillection.destinations.breadcrumb
+import com.humboshot.koillection.destinations.withTrail
 import com.humboshot.koillection.theme.KoillectionTheme
 import com.humboshot.koillection.ui.common.LocalTopBarActions
 import com.humboshot.koillection.ui.common.TopBarActionsState
 import com.humboshot.koillection.ui.common.clearImageCache
 import com.humboshot.koillection.ui.navigation.AppDrawer
+import com.humboshot.koillection.ui.navigation.SessionViewModel
+import com.humboshot.koillection.ui.navigation.drawerEntries
 import com.humboshot.koillection.ui.navigation.Breadcrumb
 import kotlinx.coroutines.launch
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
@@ -59,6 +64,10 @@ fun KoillectionApp(
         val topBarActions = remember { TopBarActionsState() }
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
+        val sessionViewModel: SessionViewModel = viewModel()
+        val user by sessionViewModel.user.collectAsStateWithLifecycle()
+
+        LaunchedEffect(Unit) { sessionViewModel.load() }
 
         BackHandler(enabled = drawerState.isOpen) {
             scope.launch { drawerState.close() }
@@ -69,14 +78,19 @@ fun KoillectionApp(
             // A swipe from the left edge on an inner page would fight with the system back gesture.
             gesturesEnabled = isRoot || drawerState.isOpen,
             drawerContent = {
+                val closeAndOpenRoot: (route: String?) -> Unit = { route ->
+                    scope.launch { drawerState.close() }
+                    navHostController.popBackStack(MainCollection.route, inclusive = false)
+                    route?.let { navHostController.navigate(withTrail(it, navHostController.currentBackStackEntry)) }
+                }
                 AppDrawer(
-                    collectionsSelected = true,
-                    username = AuthStore.username,
+                    entries = drawerEntries(
+                        features = user?.enabledFeatures(),
+                        currentRoute = backStackEntry?.destination?.route,
+                        open = closeAndOpenRoot,
+                    ),
+                    username = user?.username ?: AuthStore.username,
                     serverHost = AuthStore.serverUrl?.toHttpUrlOrNull()?.host,
-                    onCollectionsClick = {
-                        scope.launch { drawerState.close() }
-                        navHostController.popBackStack(MainCollection.route, inclusive = false)
-                    },
                     onSignOut = {
                         scope.launch { drawerState.close() }
                         appState.signOut()

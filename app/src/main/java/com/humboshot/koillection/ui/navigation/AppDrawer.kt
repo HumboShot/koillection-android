@@ -11,6 +11,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
 import androidx.compose.material.icons.filled.AccountCircle
@@ -26,20 +28,25 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.humboshot.koillection.R
 import com.humboshot.koillection.theme.KoillectionTheme
+
+/** One entry of the side menu. A null [label] draws a divider, like the web sidebar's separators. */
+data class DrawerEntry(
+    val label: String?,
+    val icon: (@Composable () -> Unit)? = null,
+    val selected: Boolean = false,
+    val onClick: () -> Unit = {},
+)
 
 /** The side menu. It follows the web sidebar: logo, sections, then the user and Log out at the bottom. */
 @Composable
 fun AppDrawer(
-    collectionsSelected: Boolean,
+    entries: List<DrawerEntry>,
     username: String?,
     serverHost: String?,
-    onCollectionsClick: () -> Unit,
     onSignOut: () -> Unit,
 ) {
     val colors = KoillectionTheme.colors
@@ -71,14 +78,25 @@ fun AppDrawer(
                     .padding(horizontal = 22.dp, vertical = 20.dp)
             )
             Spacer(Modifier.height(8.dp))
-            NavigationDrawerItem(
-                label = { Text("Collections") },
-                icon = { Icon(painterResource(R.drawable.ic_collections), contentDescription = null) },
-                selected = collectionsSelected,
-                onClick = onCollectionsClick,
-                shape = RectangleShape,
-                colors = itemColors,
-            )
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                entries.forEach { entry ->
+                    if (entry.label == null) {
+                        HorizontalDivider(
+                            color = colors.sidebarDivider,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
+                        )
+                    } else {
+                        NavigationDrawerItem(
+                            label = { Text(entry.label) },
+                            icon = entry.icon,
+                            selected = entry.selected,
+                            onClick = entry.onClick,
+                            shape = RectangleShape,
+                            colors = itemColors,
+                        )
+                    }
+                }
+            }
         }
 
         HorizontalDivider(color = colors.sidebarDivider, modifier = Modifier.padding(horizontal = 16.dp))
