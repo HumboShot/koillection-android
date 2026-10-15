@@ -5,7 +5,22 @@ import com.humboshot.koillection.data.wishlist.WishWrite
 import com.humboshot.koillection.extension.toIri
 
 private val URL = Regex("^https?://\\S+$", RegexOption.IGNORE_CASE)
-private val CURRENCY = Regex("^[A-Za-z]{3}$")
+private val PRICE = Regex("^\\d+([.,]\\d{1,2})?$")
+
+/** True for a real ISO 4217 code such as EUR. */
+private fun isCurrencyCode(code: String): Boolean =
+    code.length == 3 && runCatching { java.util.Currency.getInstance(code.uppercase()) }.isSuccess
+
+/**
+ * The link to open in the browser, or null when it cannot be opened. A link without a scheme, such as
+ * `www.shop.com`, gets `https://`. Other schemes (for example `javascript:`) are not opened.
+ */
+fun openableLink(url: String?): String? {
+    val link = url?.trim().orEmpty()
+    if (link.isEmpty()) return null
+    if (URL.matches(link)) return link
+    return if (':' !in link && ' ' !in link) "https://$link" else null
+}
 
 data class WishFormFields(
     val name: String = "",
@@ -19,8 +34,8 @@ data class WishFormFields(
     fun validate(): String? = when {
         name.isBlank() -> "Name is required"
         url.isNotBlank() && !URL.matches(url.trim()) -> "The link must start with http:// or https://"
-        price.isNotBlank() && price.trim().replace(',', '.').toBigDecimalOrNull() == null -> "Price must be a number"
-        currency.isNotBlank() && !CURRENCY.matches(currency.trim()) -> "Currency must be a 3-letter code, such as EUR"
+        price.isNotBlank() && !PRICE.matches(price.trim()) -> "Price must be a number, such as 12.50"
+        currency.isNotBlank() && !isCurrencyCode(currency.trim()) -> "Currency must be a currency code, such as EUR"
         else -> null
     }
 

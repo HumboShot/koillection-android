@@ -42,6 +42,23 @@ class WishFormFieldsTest {
     }
 
     @Test
+    fun validate_rejectsLoosePricesAndUnknownCurrencies() {
+        assertNotNull(WishFormFields(name = "A", price = "1e3").validate())
+        assertNotNull(WishFormFields(name = "A", price = "-5").validate())
+        assertNotNull(WishFormFields(name = "A", currency = "ABC").validate())
+        assertNull(WishFormFields(name = "A", price = "12", currency = "dkk").validate())
+    }
+
+    @Test
+    fun openableLink_addsSchemeAndRejectsOthers() {
+        assertEquals("https://shop.example.com/a", openableLink(" https://shop.example.com/a "))
+        assertEquals("https://www.shop.com", openableLink("www.shop.com"))
+        assertNull(openableLink("javascript:alert(1)"))
+        assertNull(openableLink("ftp://files.example.com"))
+        assertNull(openableLink(" "))
+    }
+
+    @Test
     fun clearsPriceOrCurrency_detectsCleared() {
         val fields = WishFormFields.from(original)
 

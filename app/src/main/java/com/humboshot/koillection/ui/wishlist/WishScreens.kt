@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
+import androidx.core.net.toUri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -113,6 +114,7 @@ fun WishDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val uriHandler = LocalUriHandler.current
     var confirmDelete by remember { mutableStateOf(false) }
+    var linkError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) onDeleted()
@@ -155,7 +157,20 @@ fun WishDetailScreen(
                 }
                 wish.comment?.takeIf { it.isNotBlank() }?.let { Text(it, style = MaterialTheme.typography.bodyLarge) }
                 wish.url?.takeIf { it.isNotBlank() }?.let { url ->
-                    TextButton(onClick = { runCatching { uriHandler.openUri(url) } }) { Text("Open link") }
+                    val link = openableLink(url)
+                    Text(
+                        text = link?.toUri()?.host ?: url,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    TextButton(onClick = {
+                        linkError = if (link == null || runCatching { uriHandler.openUri(link) }.isFailure) {
+                            "Cannot open the link."
+                        } else {
+                            null
+                        }
+                    }) { Text("Open link") }
+                    linkError?.let { Text(it, color = MaterialTheme.colorScheme.error) }
                 }
             }
         }
@@ -341,7 +356,7 @@ fun WishFormScreen(
             )
             OutlinedTextField(
                 value = fields.currency,
-                onValueChange = { viewModel.onFieldsChange(fields.copy(currency = it.take(3))) },
+                onValueChange = { viewModel.onFieldsChange(fields.copy(currency = it.filter(Char::isLetter).take(3))) },
                 label = { Text("Currency") },
                 placeholder = { Text("EUR") },
                 singleLine = true,
