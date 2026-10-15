@@ -454,3 +454,26 @@ object AlbumForm : AppDestination {
     fun editRoute(albumId: String): String =
         "album_form?$ALBUM_ID_ARG=$albumId&$TITLE_ARG=${Uri.encode("Edit album")}"
 }
+
+/** The route starts with "album", so the side menu keeps Albums selected. */
+object PhotoForm : AppDestination {
+    const val PHOTO_ID_ARG = "photoId"
+    const val ALBUM_ID_ARG = "albumId"
+
+    override val icon: ImageVector = Icons.Default.Edit
+    override val route: String =
+        "album_photo_form?$PHOTO_ID_ARG={$PHOTO_ID_ARG}&$ALBUM_ID_ARG={$ALBUM_ID_ARG}&$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "New photo"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(PHOTO_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(ALBUM_ID_ARG) { type = NavType.StringType; nullable = true; defaultValue = null },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(albumId: String): String = "album_photo_form?$ALBUM_ID_ARG=$albumId&$TITLE_ARG=${Uri.encode(title)}"
+
+    fun editRoute(photoId: String): String =
+        "album_photo_form?$PHOTO_ID_ARG=$photoId&$TITLE_ARG=${Uri.encode("Edit photo")}"
+}

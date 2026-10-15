@@ -20,6 +20,7 @@ import com.humboshot.koillection.destinations.ItemDetail
 import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.MainCollection
+import com.humboshot.koillection.destinations.PhotoForm
 import com.humboshot.koillection.destinations.Statistics
 import com.humboshot.koillection.destinations.TagCategoryForm
 import com.humboshot.koillection.destinations.TagCategoryList
@@ -40,6 +41,7 @@ import com.humboshot.koillection.ui.album.AlbumDetailViewModel
 import com.humboshot.koillection.ui.album.AlbumFormScreen
 import com.humboshot.koillection.ui.album.AlbumListScreen
 import com.humboshot.koillection.ui.album.AlbumListViewModel
+import com.humboshot.koillection.ui.album.PhotoFormScreen
 import com.humboshot.koillection.ui.choicelist.ChoiceListFormScreen
 import com.humboshot.koillection.ui.choicelist.ChoiceListListScreen
 import com.humboshot.koillection.ui.choicelist.ChoiceListListViewModel
@@ -281,10 +283,18 @@ fun AppNavHost(
             }
             AlbumDetailScreen(
                 onAlbumClick = { navHostController.navigateDown(AlbumDetail.createRoute(it.id, it.title)) },
+                onAddPhoto = { navHostController.navigateDown(PhotoForm.createRoute(it)) },
+                onEditPhoto = { navHostController.navigateDown(PhotoForm.editRoute(it.id)) },
                 onAddSubAlbum = { navHostController.navigateDown(AlbumForm.createRoute(it)) },
                 onEdit = { navHostController.navigateDown(AlbumForm.editRoute(it)) },
                 onDeleted = { navHostController.popWithRefresh() },
                 viewModel = viewModel
+            )
+        }
+        composable(route = PhotoForm.route, arguments = PhotoForm.arguments) {
+            PhotoFormScreen(
+                onSaved = { navHostController.popWithRefresh() },
+                onImageChanged = { navHostController.markPreviousForRefresh() }
             )
         }
         composable(route = AlbumForm.route, arguments = AlbumForm.arguments) {

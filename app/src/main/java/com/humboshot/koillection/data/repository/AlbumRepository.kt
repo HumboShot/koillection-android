@@ -5,6 +5,7 @@ import com.humboshot.koillection.api.services.AlbumService
 import com.humboshot.koillection.data.album.Album
 import com.humboshot.koillection.data.album.AlbumWrite
 import com.humboshot.koillection.data.album.Photo
+import com.humboshot.koillection.data.album.PhotoWrite
 import okhttp3.MultipartBody
 
 object AlbumRepository {
@@ -34,6 +35,16 @@ object AlbumRepository {
     suspend fun deleteAlbum(id: String): Result<Unit> = service.deleteAlbum(id)
 
     suspend fun uploadImage(id: String, file: MultipartBody.Part): Result<Album> = service.uploadImage(id, file)
+
+    suspend fun getPhoto(id: String): Result<Photo> = service.getPhoto(id)
+
+    suspend fun createPhoto(photo: PhotoWrite): Result<Photo> = service.createPhoto(photo)
+
+    suspend fun updatePhoto(id: String, photo: PhotoWrite): Result<Photo> = service.updatePhoto(id, photo)
+
+    suspend fun deletePhoto(id: String): Result<Unit> = service.deletePhoto(id)
+
+    suspend fun uploadPhotoImage(id: String, file: MultipartBody.Part): Result<Photo> = service.uploadPhotoImage(id, file)
 }
 
 fun sortPhotos(photos: List<Photo>): List<Photo> =

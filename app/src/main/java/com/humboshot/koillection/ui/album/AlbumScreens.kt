@@ -168,6 +168,18 @@ class AlbumDetailViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
 
     fun openPhoto(photo: Photo?) = _state.update { it.copy(openPhoto = photo) }
 
+    fun deletePhoto(photo: Photo) {
+        if (_state.value.isLoading) return
+        viewModelScope.launch {
+            _state.update { it.copy(isLoading = true, error = null, openPhoto = null) }
+            AlbumRepository.deletePhoto(photo.id)
+                .onSuccess { refresh() }
+                .onFailure { throwable ->
+                    _state.update { it.copy(isLoading = false, error = throwable.message ?: "Failed to delete photo") }
+                }
+        }
+    }
+
     fun delete() {
         if (_state.value.isLoading) return
         viewModelScope.launch {
@@ -196,6 +208,8 @@ data class AlbumDetailViewState(
 @Composable
 fun AlbumDetailScreen(
     onAlbumClick: (Album) -> Unit,
+    onAddPhoto: (albumId: String) -> Unit,
+    onEditPhoto: (Photo) -> Unit,
     onAddSubAlbum: (parentId: String) -> Unit,
     onEdit: (albumId: String) -> Unit,
     onDeleted: () -> Unit,
@@ -204,6 +218,7 @@ fun AlbumDetailScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var menuOpen by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
+    var photoToDelete by remember { mutableStateOf<Photo?>(null) }
 
     LaunchedEffect(state.isDeleted) {
         if (state.isDeleted) onDeleted()
@@ -215,6 +230,13 @@ fun AlbumDetailScreen(
                 Icon(Icons.Default.MoreVert, contentDescription = "More actions")
             }
             DropdownMenu(expanded = menuOpen, onDismissRequest = { menuOpen = false }) {
+                DropdownMenuItem(
+                    text = { Text("Add photo") },
+                    onClick = {
+                        menuOpen = false
+                        onAddPhoto(album.id)
+                    }
+                )
                 DropdownMenuItem(
                     text = { Text("New sub-album") },
                     onClick = {
@@ -305,7 +327,30 @@ fun AlbumDetailScreen(
     }
 
     state.openPhoto?.let { photo ->
-        PhotoViewer(photo, onDismiss = { viewModel.openPhoto(null) })
+        PhotoViewer(photo, onDismiss = { viewModel.openPhoto(null) }) {
+            Row {
+                TextButton(onClick = {
+                    viewModel.openPhoto(null)
+                    onEditPhoto(photo)
+                }) { Text("Edit", color = Color.White) }
+                TextButton(onClick = { photoToDelete = photo }) { Text("Delete", color = Color.White) }
+            }
+        }
+    }
+
+    photoToDelete?.let { photo ->
+        AlertDialog(
+            onDismissRequest = { photoToDelete = null },
+            title = { Text("Delete photo?") },
+            text = { Text("This deletes the photo \"${photo.title}\". You cannot undo this.") },
+            confirmButton = {
+                TextButton(onClick = {
+                    photoToDelete = null
+                    viewModel.deletePhoto(photo)
+                }) { Text("Delete") }
+            },
+            dismissButton = { TextButton(onClick = { photoToDelete = null }) { Text("Cancel") } }
+        )
     }
 }
 
