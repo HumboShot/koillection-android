@@ -524,3 +524,17 @@ object InventoryDetail : AppDestination {
 
     fun createRoute(id: String, name: String): String = "inventory/$id?$TITLE_ARG=${Uri.encode(name)}"
 }
+
+/** The pages that the side menu opens. They show the menu button instead of Back, and their breadcrumb starts with them. */
+val rootRoutes: Set<String> = setOf(
+    MainCollection.route,
+    WishlistList.route,
+    TagList.route,
+    AlbumList.route,
+    LoanList.route,
+    TemplateList.route,
+    ChoiceListList.route,
+    History.route,
+    Statistics.route,
+    InventoryList.route,
+)

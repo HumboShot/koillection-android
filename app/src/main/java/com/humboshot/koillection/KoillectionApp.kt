@@ -32,7 +32,7 @@ import com.humboshot.koillection.auth.AuthStore
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.data.user.enabledFeatures
 import com.humboshot.koillection.destinations.breadcrumb
-import com.humboshot.koillection.destinations.withTrail
+import com.humboshot.koillection.destinations.rootRoutes
 import com.humboshot.koillection.theme.KoillectionTheme
 import com.humboshot.koillection.ui.common.LocalTopBarActions
 import com.humboshot.koillection.ui.common.TopBarActionsState
@@ -60,7 +60,7 @@ fun KoillectionApp(
     // The saved login loads on a background thread at start. Show only the window background until then.
     if (isAuthenticated ?: return) {
         val backStackEntry by navHostController.currentBackStackEntryAsState()
-        val isRoot = backStackEntry?.destination?.route == MainCollection.route
+        val isRoot = backStackEntry?.destination?.route in rootRoutes
         val topBarActions = remember { TopBarActionsState() }
         val drawerState = rememberDrawerState(DrawerValue.Closed)
         val scope = rememberCoroutineScope()
@@ -81,7 +81,7 @@ fun KoillectionApp(
                 val closeAndOpenRoot: (route: String?) -> Unit = { route ->
                     scope.launch { drawerState.close() }
                     navHostController.popBackStack(MainCollection.route, inclusive = false)
-                    route?.let { navHostController.navigate(withTrail(it, navHostController.currentBackStackEntry)) }
+                    route?.let { navHostController.navigate(it) }
                 }
                 AppDrawer(
                     entries = drawerEntries(
