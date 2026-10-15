@@ -9,6 +9,8 @@ import androidx.navigation.compose.composable
 import com.humboshot.koillection.data.collection.KCollection
 import com.humboshot.koillection.data.item.Item
 import com.humboshot.koillection.data.user.Feature
+import com.humboshot.koillection.destinations.AlbumDetail
+import com.humboshot.koillection.destinations.AlbumList
 import com.humboshot.koillection.destinations.ChoiceListForm
 import com.humboshot.koillection.destinations.ChoiceListList
 import com.humboshot.koillection.destinations.CollectionDetail
@@ -32,6 +34,10 @@ import com.humboshot.koillection.destinations.WishlistForm
 import com.humboshot.koillection.destinations.WishlistList
 import com.humboshot.koillection.destinations.withTrail
 import com.humboshot.koillection.extension.iriId
+import com.humboshot.koillection.ui.album.AlbumDetailScreen
+import com.humboshot.koillection.ui.album.AlbumDetailViewModel
+import com.humboshot.koillection.ui.album.AlbumListScreen
+import com.humboshot.koillection.ui.album.AlbumListViewModel
 import com.humboshot.koillection.ui.choicelist.ChoiceListFormScreen
 import com.humboshot.koillection.ui.choicelist.ChoiceListListScreen
 import com.humboshot.koillection.ui.choicelist.ChoiceListListViewModel
@@ -254,6 +260,25 @@ fun AppNavHost(
             WishlistFormScreen(
                 onSaved = { navHostController.popWithRefresh() },
                 onImageChanged = { navHostController.markPreviousForRefresh() }
+            )
+        }
+        composable(route = AlbumList.route, arguments = AlbumList.arguments) { entry ->
+            val viewModel: AlbumListViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            AlbumListScreen(
+                onAlbumClick = { navHostController.navigateDown(AlbumDetail.createRoute(it.id, it.title)) },
+                viewModel = viewModel
+            )
+        }
+        composable(route = AlbumDetail.route, arguments = AlbumDetail.arguments) { entry ->
+            val viewModel: AlbumDetailViewModel = viewModel()
+            RefreshOnResult(entry) {
+                viewModel.refresh()
+                navHostController.markPreviousForRefresh()
+            }
+            AlbumDetailScreen(
+                onAlbumClick = { navHostController.navigateDown(AlbumDetail.createRoute(it.id, it.title)) },
+                viewModel = viewModel
             )
         }
         composable(route = ItemForm.route, arguments = ItemForm.arguments) {

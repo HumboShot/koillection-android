@@ -7,6 +7,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.ui.res.painterResource
 import com.humboshot.koillection.R
 import com.humboshot.koillection.data.user.Feature
+import com.humboshot.koillection.destinations.AlbumList
 import com.humboshot.koillection.destinations.ChoiceListList
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.Statistics
@@ -47,6 +48,16 @@ fun drawerEntries(
                     icon = { Icon(painterResource(R.drawable.ic_tags), contentDescription = null) },
                     selected = isCurrent(TagList.ROUTE_PREFIX),
                     onClick = { open(TagList.createRoute()) },
+                )
+            )
+        }
+        if (enabled(Feature.ALBUMS)) {
+            add(
+                DrawerEntry(
+                    label = AlbumList.title,
+                    icon = { Icon(painterResource(R.drawable.ic_albums), contentDescription = null) },
+                    selected = isCurrent(AlbumList.ROUTE_PREFIX),
+                    onClick = { open(AlbumList.createRoute()) },
                 )
             )
         }

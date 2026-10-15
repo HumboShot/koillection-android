@@ -398,3 +398,35 @@ object WishForm : AppDestination {
 
     fun editRoute(wishId: String): String = "wish_form?$WISH_ID_ARG=$wishId&$TITLE_ARG=${Uri.encode("Edit wish")}"
 }
+
+object AlbumList : AppDestination {
+    /** Routes of all album and photo screens start with this. */
+    const val ROUTE_PREFIX = "album"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "albums?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Albums"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "albums?$TITLE_ARG=${Uri.encode(title)}"
+}
+
+object AlbumDetail : AppDestination {
+    const val ID_ARG = "albumId"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "album/{$ID_ARG}?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Album"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(ID_ARG) { type = NavType.StringType },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(id: String, title: String): String = "album/$id?$TITLE_ARG=${Uri.encode(title)}"
+}
