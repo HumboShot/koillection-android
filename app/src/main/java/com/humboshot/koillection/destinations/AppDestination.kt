@@ -125,3 +125,19 @@ object CollectionForm : AppDestination {
     fun editRoute(collectionId: String): String =
         "collection_form?$COLLECTION_ID_ARG=$collectionId&$TITLE_ARG=${Uri.encode("Edit collection")}"
 }
+
+object TagList : AppDestination {
+    /** Routes of all tag screens start with this, so the side menu can mark Tags as current. */
+    const val ROUTE_PREFIX = "tag"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "tags?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Tags"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(): String = "tags?$TITLE_ARG=${Uri.encode(title)}"
+}

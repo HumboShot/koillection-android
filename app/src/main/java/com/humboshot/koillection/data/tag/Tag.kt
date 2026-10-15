@@ -11,8 +11,12 @@ data class Tag(
     val label: String,
     @Json(name = "description")
     val description: String?,
+    @Json(name = "image")
+    val image: String? = null,
     @Json(name = "imageSmallThumbnail")
     val imageSmallThumbnail: String?,
     @Json(name = "category")
-    val category: String?
+    val category: String?,
+    @Json(name = "visibility")
+    val visibility: String? = null,
 )
