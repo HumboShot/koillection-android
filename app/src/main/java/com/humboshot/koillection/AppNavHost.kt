@@ -18,6 +18,7 @@ import com.humboshot.koillection.destinations.ItemForm
 import com.humboshot.koillection.destinations.LoanList
 import com.humboshot.koillection.destinations.MainCollection
 import com.humboshot.koillection.destinations.Statistics
+import com.humboshot.koillection.destinations.TagDetail
 import com.humboshot.koillection.destinations.TagList
 import com.humboshot.koillection.destinations.TemplateDetail
 import com.humboshot.koillection.destinations.TemplateList
@@ -41,6 +42,8 @@ import com.humboshot.koillection.ui.loan.LoanListScreen
 import com.humboshot.koillection.ui.loan.LoanListViewModel
 import com.humboshot.koillection.ui.statistics.StatisticsScreen
 import com.humboshot.koillection.ui.statistics.visibleStatistics
+import com.humboshot.koillection.ui.tag.TagDetailScreen
+import com.humboshot.koillection.ui.tag.TagDetailViewModel
 import com.humboshot.koillection.ui.tag.TagListScreen
 import com.humboshot.koillection.ui.tag.TagListViewModel
 import com.humboshot.koillection.ui.template.TemplateDetailScreen
@@ -103,7 +106,15 @@ fun AppNavHost(
         composable(route = TagList.route, arguments = TagList.arguments) { entry ->
             val viewModel: TagListViewModel = viewModel()
             RefreshOnResult(entry, viewModel::refresh)
-            TagListScreen(onTagClick = {}, viewModel = viewModel)
+            TagListScreen(
+                onTagClick = { navHostController.navigateDown(TagDetail.createRoute(it.id, it.label)) },
+                viewModel = viewModel
+            )
+        }
+        composable(route = TagDetail.route, arguments = TagDetail.arguments) { entry ->
+            val viewModel: TagDetailViewModel = viewModel()
+            RefreshOnResult(entry, viewModel::refresh)
+            TagDetailScreen(onItemClick = openItem, viewModel = viewModel)
         }
         composable(route = LoanList.route, arguments = LoanList.arguments) { entry ->
             val viewModel: LoanListViewModel = viewModel()

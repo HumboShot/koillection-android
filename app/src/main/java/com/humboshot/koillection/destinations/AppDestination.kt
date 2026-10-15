@@ -237,3 +237,19 @@ object Statistics : AppDestination {
 
     fun createRoute(): String = "statistics?$TITLE_ARG=${Uri.encode(title)}"
 }
+
+object TagDetail : AppDestination {
+    const val ID_ARG = "tagId"
+
+    override val icon: ImageVector = Icons.AutoMirrored.Filled.List
+    override val route: String = "tag/{$ID_ARG}?$TITLE_ARG={$TITLE_ARG}&$TRAIL_ARG={$TRAIL_ARG}"
+    override val title: String = "Tag"
+
+    val arguments: List<NamedNavArgument> = listOf(
+        navArgument(ID_ARG) { type = NavType.StringType },
+        navArgument(TITLE_ARG) { type = NavType.StringType; defaultValue = title },
+        trailArgument,
+    )
+
+    fun createRoute(id: String, label: String): String = "tag/$id?$TITLE_ARG=${Uri.encode(label)}"
+}
