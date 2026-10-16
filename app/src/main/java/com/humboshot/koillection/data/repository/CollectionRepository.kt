@@ -26,8 +26,9 @@ object CollectionRepository {
         getAllPages { page -> service.getData(id, page) }
             .map { data -> data.sortedBy { it.position ?: Int.MAX_VALUE } }
 
-    suspend fun getItems(id: String, page: Int): Result<Page<Item>> =
-        service.getItems(id, page).map { it.toPage() }
+    /** All items, because the app sorts them itself. The API has no sort option. */
+    suspend fun getAllItems(id: String): Result<List<Item>> =
+        getAllPages(maxPages = 500) { page -> service.getItems(id, page) }
 
     suspend fun createCollection(collection: CollectionWrite): Result<KCollection> =
         service.createCollection(collection)
