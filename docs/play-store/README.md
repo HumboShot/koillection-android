@@ -119,3 +119,53 @@ In both cases:
 ## 4. Testing before production
 
 Personal developer accounts made after 13 November 2023 must run a closed test with at least 12 testers for 14 days in a row before the production release. Start the closed test as early as possible.
+
+## 5. Automatic uploads to the internal track
+
+The workflow `.github/workflows/android.yml` runs on GitHub Actions:
+
+- On each pull request: unit tests and lint.
+- On each commit on `main`: the same checks, then a signed app bundle goes to the **internal testing** track.
+
+Each upload gets `versionCode` = 100 + the run number (101, 102, ...). This keeps it above the versions that you uploaded by hand. After this, do not upload by hand with a lower `versionCode`.
+
+### Set it up (once)
+
+1. **Make a service account.**
+   1. In the [Google Cloud console](https://console.cloud.google.com/), select or make a project, and enable the **Google Play Android Developer API**.
+   2. Under IAM & Admin → Service accounts, make a service account. It needs no Cloud roles.
+   3. Under the service account → Keys, add a JSON key and download it.
+2. **Give the service account access in the Play Console.**
+   1. Go to Users and permissions → Invite new users, and enter the service account's email address.
+   2. Under App permissions, add Goshiki with **Release apps to testing tracks** and **View app information**.
+3. **Add the secrets to GitHub.** Run these in PowerShell, in the folder with the key files. `--repo` is needed when you are outside the repository. For the passwords and the alias, `gh` asks for the value, so it does not show in the shell history.
+   ```powershell
+   [Convert]::ToBase64String([IO.File]::ReadAllBytes("$PWD\upload-key.jks")) | gh secret set UPLOAD_KEYSTORE_BASE64 --repo HumboShot/koillection-android
+   ```
+   ```powershell
+   gh secret set UPLOAD_STORE_PASSWORD --repo HumboShot/koillection-android
+   ```
+   ```powershell
+   gh secret set UPLOAD_KEY_ALIAS --repo HumboShot/koillection-android
+   ```
+   ```powershell
+   gh secret set UPLOAD_KEY_PASSWORD --repo HumboShot/koillection-android
+   ```
+   ```powershell
+   Get-Content .\service-account.json -Raw | gh secret set PLAY_SERVICE_ACCOUNT_JSON --repo HumboShot/koillection-android
+   ```
+   - In Git Bash, `base64 -w0 upload-key.jks | gh secret set UPLOAD_KEYSTORE_BASE64` and `gh secret set PLAY_SERVICE_ACCOUNT_JSON < service-account.json` do the same.
+   - `keytool -list -keystore upload-key.jks` shows the key alias.
+   - `gh secret list --repo HumboShot/koillection-android` shows the names of the secrets, not the values.
+
+   Then delete the downloaded JSON key, or keep it in your password manager.
+4. **Until Google has reviewed one release of the app,** the Play API only accepts draft releases. Set this variable, and remove it after the first review:
+   ```powershell
+   gh variable set PLAY_RELEASE_STATUS --body draft --repo HumboShot/koillection-android
+   ```
+   A draft release does not reach testers until you roll it out in the Play Console.
+
+### Security
+
+- The secrets are only used in the `publish` job, which runs only for commits on `main`. Pull requests from forks do not get the secrets.
+- The job deletes the key file at the end.

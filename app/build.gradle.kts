@@ -19,8 +19,8 @@ android {
         applicationId = "com.humboshot.koillection"
         minSdk = 24
         targetSdk = 36
-        // Google Play needs a higher versionCode for each upload.
-        versionCode = 3
+        // Google Play needs a higher versionCode for each upload. The CI build passes -PversionCode=<number>.
+        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 3
         versionName = "1.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
