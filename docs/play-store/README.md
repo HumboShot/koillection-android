@@ -126,7 +126,7 @@ The workflow `.github/workflows/android.yml` runs on GitHub Actions:
 
 - On each pull request: unit tests and lint.
 - On each commit on `main`: the same checks, then a signed app bundle goes to the **internal testing** track.
-- The release notes ("What's new") list the titles of the commits in the push, up to Google Play's 500 characters. Write commit titles for users, for example "Sort collections and items". The notes are in English (`en-US`). If the default language of your store listing is different, set the `PLAY_NOTES_LANGUAGE` variable, for example to `en-GB`.
+- The release notes ("What's new") list the titles of the commits in the push, up to Google Play's 500 characters. Write commit titles for users, for example "Sort collections and items". Commits whose title starts with a tag in square brackets, for example `[ci]` or `[docs]`, are left out. When no commit is left, the note says "Small improvements." The notes are in English (`en-US`). If the default language of your store listing is different, set the `PLAY_NOTES_LANGUAGE` variable, for example to `en-GB`.
 
 Each upload gets `versionCode` = 100 + the run number (101, 102, ...). This keeps it above the versions that you uploaded by hand. After this, do not upload by hand with a lower `versionCode`.
 

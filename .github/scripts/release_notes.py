@@ -2,7 +2,9 @@
 
 Usage: python release_notes.py <commit before the push, or empty> <output file>
 
-Google Play allows 500 characters. When the list is longer, it ends with "…and more".
+Commits whose title starts with a tag in square brackets, such as "[ci] ..." or "[docs] ...",
+are internal and are left out. Google Play allows 500 characters. When the list is longer,
+it ends with "…and more".
 """
 import subprocess
 import sys
@@ -21,7 +23,12 @@ def commit_titles(before):
         ["git", "log", "--no-merges", "--format=%s", *selection],
         capture_output=True, text=True, check=True,
     ).stdout
-    return [line.strip() for line in out.splitlines() if line.strip()]
+    titles = [line.strip() for line in out.splitlines() if line.strip()]
+    return [title for title in titles if not is_internal(title)]
+
+
+def is_internal(title):
+    return title.startswith("[") and "]" in title
 
 
 def notes(titles):
