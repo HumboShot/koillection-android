@@ -21,7 +21,7 @@ Run this before each commit. All tests must pass, and lint must have 0 errors.
   - Write the title of a commit that changes the app for its users, for example "Sort collections and items".
   - Start the title of an internal commit with a tag in square brackets, for example `[ci]`, `[docs]`, `[build]` or `[test]`. These commits are left out of the release notes.
 - Write commit messages in Simplified Technical English. Add no AI attribution lines.
-- CI sets `versionCode` from the run number. Do not upload builds by hand.
+- CI sets the build number from the run number. It is both the `versionCode` and the `versionName`, for example 104. Do not upload builds by hand.
 
 ## Devices and the server
 

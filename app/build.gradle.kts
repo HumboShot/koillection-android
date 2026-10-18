@@ -20,8 +20,10 @@ android {
         minSdk = 24
         targetSdk = 36
         // Google Play needs a higher versionCode for each upload. The CI build passes -PversionCode=<number>.
-        versionCode = (project.findProperty("versionCode") as String?)?.toInt() ?: 3
-        versionName = "1.0.0"
+        // The version that users see is the same build number, for example "104".
+        val buildNumber = (project.findProperty("versionCode") as String?)?.toInt() ?: 3
+        versionCode = buildNumber
+        versionName = buildNumber.toString()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {

@@ -76,12 +76,18 @@ jobs:
             echo "keyPassword=$UPLOAD_KEY_PASSWORD"
           } > keystore.properties
 
+      - name: Choose the build number
+        id: build
+        env:
+          # Each run gets a higher number. The offset keeps it above the versions uploaded by hand.
+          RUN_NUMBER: ${{ github.run_number }}
+          OFFSET: ${{ vars.VERSION_CODE_OFFSET || '100' }}
+        run: echo "number=$((RUN_NUMBER + OFFSET))" >> "$GITHUB_OUTPUT"
+
       - name: Build the app bundle
         env:
-          # Each run gets a higher versionCode. The offset keeps it above the versions uploaded by hand.
-          VERSION_CODE: ${{ github.run_number }}
-          VERSION_CODE_OFFSET: ${{ vars.VERSION_CODE_OFFSET || '100' }}
-        run: ./gradlew bundleRelease -PversionCode=$((VERSION_CODE + VERSION_CODE_OFFSET)) --console=plain
+          BUILD_NUMBER: ${{ steps.build.outputs.number }}
+        run: ./gradlew bundleRelease -PversionCode="$BUILD_NUMBER" --console=plain
 
       - name: Upload to the internal track
         uses: r0adkll/upload-google-play@v1.1.5
@@ -91,6 +97,7 @@ jobs:
           releaseFiles: app/build/outputs/bundle/release/app-release.aab
           mappingFile: app/build/outputs/mapping/release/mapping.txt
           whatsNewDirectory: whatsnew
+          releaseName: ${{ steps.build.outputs.number }}
           track: internal
           # Use "draft" until the app has one release that Google has reviewed.
           status: ${{ vars.PLAY_RELEASE_STATUS || 'completed' }}

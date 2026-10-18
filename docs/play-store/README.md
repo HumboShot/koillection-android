@@ -28,7 +28,7 @@ keyPassword=<your key password>
 
 The bundle is `app/build/outputs/bundle/release/app-release.aab`. The release build uses R8, so also upload the mapping file `app/build/outputs/mapping/release/mapping.txt`. Play then shows readable crash reports.
 
-For each new upload, raise `versionCode` in `app/build.gradle.kts` by 1 and update `versionName`.
+The GitHub workflow in section 5 sets the build number. A build by hand uses build number 3.
 
 ## 3. Play Console
 
@@ -128,7 +128,7 @@ The workflow `.github/workflows/android.yml` runs on GitHub Actions:
 - On each commit on `main`: the same checks, then a signed app bundle goes to the **internal testing** track.
 - The release notes ("What's new") list the titles of the commits in the push, up to Google Play's 500 characters. Write commit titles for users, for example "Sort collections and items". Commits whose title starts with a tag in square brackets, for example `[ci]` or `[docs]`, are left out. When no commit is left, the note says "Small improvements." The notes are in English (`en-US`). If the default language of your store listing is different, set the `PLAY_NOTES_LANGUAGE` variable, for example to `en-GB`.
 
-Each upload gets `versionCode` = 100 + the run number (101, 102, ...). This keeps it above the versions that you uploaded by hand. After this, do not upload by hand with a lower `versionCode`.
+Each upload gets a build number of 100 + the run number (101, 102, ...). It is the `versionCode`, the version name that users see, and the release name in the Play Console. The offset keeps it above the versions that you uploaded by hand. Do not upload builds by hand anymore.
 
 ### Set it up (once)
 
